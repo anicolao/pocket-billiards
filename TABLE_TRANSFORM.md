@@ -22,10 +22,15 @@ The model uses a fixed-size coordinate system representing the pool table's play
 
 **Key Model Elements:**
 - Playing surface: (0, 0) to (1000, 500)
-- Rails: Extend beyond playing surface by `railWidth` units in all directions
-- Pockets: Positioned at corners and midpoints of long edges
-- Balls: Center positions expressed in table coordinates
+- Rails: Extend from (-railWidth, -railWidth) to (1000 + railWidth, 500 + railWidth)
+- Pockets: Positioned relative to playing surface origin; some may have negative coordinates
+- Balls: Center positions expressed in playing surface coordinates (0-1000, 0-500)
 - Physics calculations: All computed in table space
+
+**Important:** The model coordinate system origin is at the playing surface top-left corner, NOT at the top-left of the rails. This means:
+- Valid ball positions: approximately 0 ≤ x ≤ 1000, 0 ≤ y ≤ 500 (excluding pockets)
+- Rail coordinates: negative values up to -railWidth and beyond tableWidth/Height up to +railWidth
+- When rendering, both the playing surface and rails must be drawn, accounting for their relative positions
 
 **Design Rationale:** The fixed 1000×500 coordinate system provides:
 - Consistent physics calculations regardless of screen size
@@ -84,13 +89,17 @@ The complete transformation from table space to screen space consists of:
 
 ### Scale Calculation
 
-The scale factor must fit the table (including rails) within the screen with appropriate padding:
+The scale factor must fit the entire renderable table area (playing surface plus rails) within the screen with appropriate padding.
 
+**Renderable Table Dimensions:**
 ```
-// Assuming railWidth = 40 (typical value)
+// The total area to render includes rails on all sides
+// Assuming railWidth = 40 (typical value, may be configured)
 totalTableWidth = tableWidth + (2 × railWidth)     // 1000 + (2 × 40) = 1080
 totalTableHeight = tableHeight + (2 × railWidth)   // 500 + (2 × 40) = 580
 ```
+
+**Note:** These dimensions represent the complete table visual footprint. The model coordinate system origin (0,0) remains at the playing surface, meaning the renderable area spans from (-railWidth, -railWidth) to (tableWidth + railWidth, tableHeight + railWidth) in model coordinates.
 
 **For Landscape Orientation (no rotation):**
 ```
@@ -143,27 +152,25 @@ screenY = translationY + (tableY × scale)
 
 **Portrait (90° clockwise rotation):**
 
-When rotating, the entire renderable table area (including rails) is rotated. The formulas below work with table coordinates where the origin (0,0) is at the playing surface top-left:
+The transformation handles the entire renderable table area. For coordinates in the model's playing surface space (0-1000, 0-500), the transformation process is:
 
 ```
-// For a point in table coordinates:
-// 1. Apply 90° CW rotation
-// 2. Scale
-// 3. Translate to screen position
+// Method 1: Direct formula approach
+// First, determine the position in the renderable area (accounting for rails)
+renderX = tableX + railWidth    // Offset from playing surface to renderable area
+renderY = tableY + railWidth
 
-// Note: These formulas assume rails are handled separately in rendering
-// or that coordinates are adjusted for rail offset as needed
+// Apply 90° clockwise rotation around the renderable area origin
+// Rotation: (x, y) → (y, totalTableWidth - x)
+rotatedX = renderY  
+rotatedY = totalTableWidth - renderX
 
-// Simplified rotation (90° CW): (x, y) → (y, width - x)
-// where width is the reference width being rotated
-rotatedX = tableY + railWidth
-rotatedY = totalTableWidth - (tableX + railWidth)
-
+// Scale and translate to screen position
 screenX = translationX + (rotatedX × scale)
 screenY = translationY + (rotatedY × scale)
 ```
 
-Alternatively, using canvas transformation matrix (see Rendering section for implementation details)
+**Method 2: Using canvas transformations** (recommended, see Rendering section)
 
 ## Input Transformation (Screen to Model)
 
@@ -183,7 +190,7 @@ tableY = (screenY - translationY) / scale
 
 **Portrait (90° CCW inverse rotation):**
 ```
-// Remove translation
+// Remove screen translation
 adjustedX = screenX - translationX
 adjustedY = screenY - translationY
 
@@ -191,11 +198,13 @@ adjustedY = screenY - translationY
 scaledX = adjustedX / scale
 scaledY = adjustedY / scale
 
-// Undo rotation (90° CCW: reverse of CW)
-// Forward was: rotatedX = tableY + railWidth, rotatedY = totalTableWidth - (tableX + railWidth)
-// Inverse: tableY = rotatedX - railWidth, tableX = totalTableWidth - rotatedY - railWidth
-tableY = scaledX - railWidth
-tableX = totalTableWidth - scaledY - railWidth
+// Undo rotation (reverse of: rotatedX = renderY, rotatedY = totalTableWidth - renderX)
+renderY = scaledX
+renderX = totalTableWidth - scaledY
+
+// Convert from renderable area coordinates to playing surface coordinates
+tableX = renderX - railWidth
+tableY = renderY - railWidth
 ```
 
 ### Bounds Checking
@@ -212,45 +221,53 @@ All rendering occurs on an HTML5 canvas. The transformation is applied using the
 
 ### Canvas Context Setup
 
+The canvas transformation matrix should be set up to transform from the model's renderable area (which includes rails) to screen space.
+
 **Landscape:**
 ```typescript
 ctx.save()
 ctx.translate(translationX, translationY)
 ctx.scale(scale, scale)
-// Draw table elements in model coordinates
+// Now at renderable area origin (top-left of rails)
+// To draw at playing surface origin (0,0), offset by railWidth:
+ctx.translate(railWidth, railWidth)
+// Now (0,0) corresponds to playing surface top-left
+// Draw table elements in model coordinates (e.g., ball at 250, 125)
 ctx.restore()
 ```
 
 **Portrait:**
 ```typescript
 ctx.save()
-// Approach: Translate to final position, rotate, scale, then draw
-// The table (including rails) will be properly positioned and rotated
+// Position where the rotated table's renderable area top-left will be
 const offsetX = translationX
 const offsetY = translationY + totalTableWidth * scale
 ctx.translate(offsetX, offsetY)
 ctx.rotate(Math.PI / 2)  // 90° clockwise
 ctx.scale(scale, scale)
-// At this point, drawing at (0, 0) represents the top-left of the full table (including rails)
-// For model coordinates, offset by railWidth when drawing:
-// e.g., ctx.arc(railWidth + ballX, railWidth + ballY, radius, 0, Math.PI * 2)
+// Now at renderable area origin after rotation
+// Offset to playing surface origin:
+ctx.translate(railWidth, railWidth)
+// Now (0,0) corresponds to playing surface top-left in rotated space
+// Draw table elements in model coordinates
 ctx.restore()
 ```
 
-**Note:** The exact translation and rotation order may vary based on implementation, but the key principle is that canvas transformations handle the conversion from table coordinates to rotated, scaled, and positioned screen coordinates.
-
 ### Drawing Model Elements
 
-With the transformation applied, all drawing operations use table coordinates directly:
+With the transformation applied (including the railWidth offset), all drawing operations use table coordinates directly, where (0,0) is the playing surface top-left:
 
 ```typescript
-// Example: Draw a ball at table position (250, 125)
+// Example: Draw a ball at table position (250, 125) on the playing surface
 ctx.beginPath()
 ctx.arc(250, 125, ballRadius, 0, Math.PI * 2)
 ctx.fill()
+
+// Example: Draw the rail area (before applying railWidth offset, or by using negative coords)
+// Rails would be drawn from (-railWidth, -railWidth) to (tableWidth + railWidth, tableHeight + railWidth)
 ```
 
-The canvas transformation automatically converts these to correct screen positions.
+The canvas transformation automatically converts these model coordinates to correct screen positions, accounting for scale, rotation, and translation.
 
 ### Layer Considerations
 
