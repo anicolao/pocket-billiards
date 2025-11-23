@@ -8,7 +8,7 @@ import ballReducer, {
 } from '../../src/store/ballSlice';
 
 describe('ballSlice', () => {
-  it('should return the initial state with cue ball at foot spot', () => {
+  it('should return the initial state with cue ball at head spot', () => {
     const state = ballReducer(undefined, { type: 'unknown' });
     
     expect(state.balls).toHaveLength(1);
@@ -19,8 +19,8 @@ describe('ballSlice', () => {
     expect(cueBall.active).toBe(true);
     expect(cueBall.radius).toBe(11.25);
     
-    // Foot spot is at 3/4 width, 1/2 height
-    expect(cueBall.position.x).toBe(750); // 1000 * 0.75
+    // Head spot is at 1/4 width, 1/2 height
+    expect(cueBall.position.x).toBe(250); // 1000 * 0.25
     expect(cueBall.position.y).toBe(250); // 500 * 0.5
     expect(cueBall.velocity.x).toBe(0);
     expect(cueBall.velocity.y).toBe(0);
@@ -75,8 +75,8 @@ describe('ballSlice', () => {
     expect(state.balls[0].id).toBe(0);
     expect(state.balls[0].type).toBe('cue');
     
-    // Foot spot with new dimensions
-    expect(state.balls[0].position.x).toBe(600); // 800 * 0.75
+    // Head spot with new dimensions
+    expect(state.balls[0].position.x).toBe(200); // 800 * 0.25
     expect(state.balls[0].position.y).toBe(200); // 400 * 0.5
   });
 
