@@ -4,9 +4,6 @@ export class TableRenderer {
   private canvas: HTMLCanvasElement;
   private ctx: CanvasRenderingContext2D;
 
-  // Rendering constants
-  private static readonly CORNER_POCKET_INSET_RATIO = 0.3;
-
   constructor(canvas: HTMLCanvasElement) {
     this.canvas = canvas;
     const context = canvas.getContext('2d');
@@ -55,7 +52,7 @@ export class TableRenderer {
    * Draw the pool table with felt and pockets
    */
   drawTable(dimensions: TableDimensions): void {
-    const { width, height, pocketRadius, railWidth } = dimensions;
+    const { width, height, pockets, railWidth } = dimensions;
     const { x, y, scale } = this.calculateTableBounds(dimensions);
 
     // Clear the canvas
@@ -75,45 +72,27 @@ export class TableRenderer {
     this.ctx.fillRect(railWidth, railWidth, width, height);
 
     // Draw the pockets
-    this.drawPockets(width, height, pocketRadius, railWidth);
+    this.drawPockets(pockets, railWidth);
 
     this.ctx.restore();
   }
 
   /**
-   * Draw the six pockets on the table
+   * Draw the pockets on the table
    */
-  private drawPockets(
-    width: number,
-    height: number,
-    pocketRadius: number,
-    railWidth: number
-  ): void {
+  private drawPockets(pockets: { x: number; y: number; radius: number }[], railWidth: number): void {
     this.ctx.fillStyle = '#000000'; // Black pockets
-
-    // Corner pockets (slightly inset from the corners)
-    const cornerInset = pocketRadius * TableRenderer.CORNER_POCKET_INSET_RATIO;
-    const pockets = [
-      // Top-left
-      { x: railWidth + cornerInset, y: railWidth + cornerInset },
-      // Top-right
-      { x: railWidth + width - cornerInset, y: railWidth + cornerInset },
-      // Bottom-left
-      { x: railWidth + cornerInset, y: railWidth + height - cornerInset },
-      // Bottom-right
-      {
-        x: railWidth + width - cornerInset,
-        y: railWidth + height - cornerInset,
-      },
-      // Middle-left
-      { x: railWidth, y: railWidth + height / 2 },
-      // Middle-right
-      { x: railWidth + width, y: railWidth + height / 2 },
-    ];
 
     pockets.forEach((pocket) => {
       this.ctx.beginPath();
-      this.ctx.arc(pocket.x, pocket.y, pocketRadius, 0, Math.PI * 2);
+      // Pocket positions are relative to playing surface, adjust for rail offset
+      this.ctx.arc(
+        railWidth + pocket.x,
+        railWidth + pocket.y,
+        pocket.radius,
+        0,
+        Math.PI * 2
+      );
       this.ctx.fill();
     });
   }
