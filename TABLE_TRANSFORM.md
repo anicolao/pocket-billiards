@@ -141,19 +141,28 @@ screenY = translationY + (tableY × scale)
 ```
 
 **Portrait (90° clockwise rotation):**
+
+When rotating, the entire renderable table area (including rails) is rotated. The formulas below work with table coordinates where the origin (0,0) is at the playing surface top-left:
+
 ```
-// Rotation happens around origin, then translate
-// For 90° CW rotation: (x, y) → (y, -x) in rotated space
-// But we measure from table's top-left, so:
-screenX = translationX + (tableY × scale)
-screenY = translationY + ((totalTableWidth - tableX) × scale)
+// For a point in table coordinates:
+// 1. Apply 90° CW rotation
+// 2. Scale
+// 3. Translate to screen position
+
+// Note: These formulas assume rails are handled separately in rendering
+// or that coordinates are adjusted for rail offset as needed
+
+// Simplified rotation (90° CW): (x, y) → (y, width - x)
+// where width is the reference width being rotated
+rotatedX = tableY + railWidth
+rotatedY = totalTableWidth - (tableX + railWidth)
+
+screenX = translationX + (rotatedX × scale)
+screenY = translationY + (rotatedY × scale)
 ```
 
-Alternatively, using canvas transformation matrix:
-1. Translate to center position
-2. Rotate 90° clockwise around center point
-3. Scale uniformly
-4. Translate by (-totalTableWidth/2, -totalTableHeight/2) to account for rotation pivot
+Alternatively, using canvas transformation matrix (see Rendering section for implementation details)
 
 ## Input Transformation (Screen to Model)
 
@@ -181,9 +190,11 @@ adjustedY = screenY - translationY
 scaledX = adjustedX / scale
 scaledY = adjustedY / scale
 
-// Undo rotation (90° CCW)
-tableX = totalTableWidth - scaledY
-tableY = scaledX
+// Undo rotation (90° CCW: reverse of CW)
+// Forward was: rotatedX = tableY + railWidth, rotatedY = totalTableWidth - (tableX + railWidth)
+// Inverse: tableY = rotatedX - railWidth, tableX = totalTableWidth - rotatedY - railWidth
+tableY = scaledX - railWidth
+tableX = totalTableWidth - scaledY - railWidth
 ```
 
 ### Bounds Checking
@@ -212,14 +223,20 @@ ctx.restore()
 **Portrait:**
 ```typescript
 ctx.save()
-// Move to where rotated table's top-left corner will be
-ctx.translate(translationX, translationY + totalTableWidth * scale)
-// Rotate 90° clockwise
-ctx.rotate(Math.PI / 2)
+// Approach: Translate to final position, rotate, scale, then draw
+// The table (including rails) will be properly positioned and rotated
+const offsetX = translationX
+const offsetY = translationY + totalTableWidth * scale
+ctx.translate(offsetX, offsetY)
+ctx.rotate(Math.PI / 2)  // 90° clockwise
 ctx.scale(scale, scale)
-// Draw table elements in model coordinates
+// At this point, drawing at (0, 0) represents the top-left of the full table (including rails)
+// For model coordinates, offset by railWidth when drawing:
+// e.g., ctx.arc(railWidth + ballX, railWidth + ballY, radius, 0, Math.PI * 2)
 ctx.restore()
 ```
+
+**Note:** The exact translation and rotation order may vary based on implementation, but the key principle is that canvas transformations handle the conversion from table coordinates to rotated, scaled, and positioned screen coordinates.
 
 ### Drawing Model Elements
 
