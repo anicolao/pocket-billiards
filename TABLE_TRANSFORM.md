@@ -333,8 +333,8 @@ No transformation state needs to be stored in game state—it's computed on dema
 **Calculations:**
 - Orientation: Landscape (width > height)
 - Rotation: 0°
-- scaleX = (1920 - 80) / 1080 = 1.70
-- scaleY = (1080 - 80) / 580 = 1.72
+- scaleX = (1920 - 2 × 40) / 1080 = 1840 / 1080 ≈ 1.70
+- scaleY = (1080 - 2 × 40) / 580 = 1000 / 580 ≈ 1.72
 - scale = min(1.70, 1.72) = 1.70
 - Scaled table: 1836×986 pixels
 - translationX = (1920 - 1836) / 2 = 42 pixels
@@ -353,8 +353,8 @@ No transformation state needs to be stored in game state—it's computed on dema
 - Orientation: Portrait (width < height)
 - Rotation: 90° clockwise
 - After rotation, table occupies: 580 width × 1080 height
-- scaleX = (1080 - 80) / 580 = 1.72
-- scaleY = (1920 - 80) / 1080 = 1.70
+- scaleX = (1080 - 2 × 40) / 580 = 1000 / 580 ≈ 1.72
+- scaleY = (1920 - 2 × 40) / 1080 = 1840 / 1080 ≈ 1.70
 - scale = min(1.72, 1.70) = 1.70
 - Scaled rotated table: 986×1836 pixels
 - translationX = (1080 - 986) / 2 = 47 pixels
@@ -372,8 +372,8 @@ No transformation state needs to be stored in game state—it's computed on dema
 **Calculations:**
 - Orientation: Landscape
 - Rotation: 0°
-- scaleX = (3840 - 80) / 1080 = 3.48
-- scaleY = (2160 - 80) / 580 = 3.59
+- scaleX = (3840 - 2 × 40) / 1080 = 3760 / 1080 ≈ 3.48
+- scaleY = (2160 - 2 × 40) / 580 = 2080 / 580 ≈ 3.59
 - scale = min(3.48, 3.59) = 3.48
 - Scaled table: 3758×2018 pixels
 - translationX = (3840 - 3758) / 2 = 41 pixels
@@ -391,8 +391,8 @@ No transformation state needs to be stored in game state—it's computed on dema
 **Calculations:**
 - Orientation: Landscape (width ≥ height, square treated as landscape)
 - Rotation: 0°
-- scaleX = (1200 - 80) / 1080 = 1.04
-- scaleY = (1200 - 80) / 580 = 1.93
+- scaleX = (1200 - 2 × 40) / 1080 = 1120 / 1080 ≈ 1.04
+- scaleY = (1200 - 2 × 40) / 580 = 1120 / 580 ≈ 1.93
 - scale = min(1.04, 1.93) = 1.04
 - Scaled table: 1123×603 pixels
 - translationX = (1200 - 1123) / 2 = 39 pixels
