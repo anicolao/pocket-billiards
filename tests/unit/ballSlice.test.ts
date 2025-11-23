@@ -105,4 +105,28 @@ describe('ballSlice', () => {
     // State should be unchanged
     expect(state.balls[0].position).toEqual(initialState.balls[0].position);
   });
+
+  it('should ignore velocity updates for non-existent ball IDs', () => {
+    const initialState: BallState = ballReducer(undefined, { type: 'unknown' });
+    
+    const state = ballReducer(
+      initialState,
+      setBallVelocity({ id: 99, velocity: { x: 10, y: 20 } })
+    );
+    
+    // State should be unchanged
+    expect(state.balls[0].velocity).toEqual(initialState.balls[0].velocity);
+  });
+
+  it('should ignore active updates for non-existent ball IDs', () => {
+    const initialState: BallState = ballReducer(undefined, { type: 'unknown' });
+    
+    const state = ballReducer(
+      initialState,
+      setBallActive({ id: 99, active: false })
+    );
+    
+    // State should be unchanged
+    expect(state.balls[0].active).toEqual(initialState.balls[0].active);
+  });
 });
