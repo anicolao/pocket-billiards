@@ -41,8 +41,8 @@ jobs:
         run: |
           echo "Checking for new or modified screenshots..."
           
-          # Stage all snapshot directories to track new files
-          find tests/e2e -type d -name "*-snapshots" -exec git add -N {} \; 2>/dev/null || true
+          # Stage all screenshot files to track new ones
+          find tests/e2e -type f \( -name '*.png' -o -name '*.jpg' -o -name '*.jpeg' \) | xargs -r git add -N 2>/dev/null || true
           
           # Check for any new or modified screenshot files
           CHANGED_SCREENSHOTS=$(git diff --name-only tests/e2e/ | grep -E '\.(png|jpg|jpeg)$' || true)
