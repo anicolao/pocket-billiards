@@ -14,9 +14,9 @@ This test suite validates the rendering correctness of the pool table in both la
 
 ### Screenshot 0000: Initial Table with Cue Ball (Landscape)
 
-![Screenshot 0000: Landscape orientation with cue ball](table.spec.ts-snapshots/screenshots-0000-initial-table-with-cue-ball-chromium-linux.png)
+![Screenshot 0000: Landscape orientation with cue ball](table.spec.ts-snapshots/0000-initial-table-with-cue-ball-chromium-linux.png)
 
-**File**: `table.spec.ts-snapshots/screenshots-0000-initial-table-with-cue-ball-chromium-linux.png`
+**File**: `table.spec.ts-snapshots/0000-initial-table-with-cue-ball-chromium-linux.png`
 
 **Test**: `renders pool table with cue ball at head spot`
 
@@ -67,9 +67,9 @@ This test suite validates the rendering correctness of the pool table in both la
 
 ### Screenshot 0001: Portrait Mode Table with Cue Ball
 
-![Screenshot 0001: Portrait orientation with 90° rotation](table.spec.ts-snapshots/screenshots-0001-portrait-mode-table-with-cue-ball-chromium-linux.png)
+![Screenshot 0001: Portrait orientation with 90° rotation](table.spec.ts-snapshots/0001-portrait-mode-table-with-cue-ball-chromium-linux.png)
 
-**File**: `table.spec.ts-snapshots/screenshots-0001-portrait-mode-table-with-cue-ball-chromium-linux.png`
+**File**: `table.spec.ts-snapshots/0001-portrait-mode-table-with-cue-ball-chromium-linux.png`
 
 **Test**: `renders pool table in portrait orientation with 90° rotation`
 

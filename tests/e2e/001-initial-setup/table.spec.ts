@@ -29,9 +29,9 @@ test.describe('Rendering: Initial Table Setup', () => {
     });
 
     // Take screenshot following the naming convention: ####-description.png
-    // Per E2E_TESTING.md: "Screenshots are stored in a screenshots/ subdirectory"
+    // Per E2E_TESTING.md: Screenshots are stored in Playwright's snapshots directory
     // This screenshot shows the initial state with cue ball at head spot
-    await expect(page).toHaveScreenshot('screenshots/0000-initial-table-with-cue-ball.png', {
+    await expect(page).toHaveScreenshot('0000-initial-table-with-cue-ball.png', {
       maxDiffPixels: 0, // Zero-tolerance policy per E2E_TESTING.md
     });
   });
@@ -132,7 +132,7 @@ test.describe('Rendering: Portrait Mode Setup', () => {
     }
 
     // Take screenshot showing the portrait mode rendering with rotated table
-    await expect(page).toHaveScreenshot('screenshots/0001-portrait-mode-table-with-cue-ball.png', {
+    await expect(page).toHaveScreenshot('0001-portrait-mode-table-with-cue-ball.png', {
       maxDiffPixels: 0, // Zero-tolerance policy per E2E_TESTING.md
     });
   });
