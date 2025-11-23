@@ -121,8 +121,6 @@ scale = min(scaleX, scaleY)
 
 **Properties:**
 - Single uniform scale factor (preserves aspect ratio)
-- Typically < 1.0 (table scaled down to fit screen)
-- May be > 1.0 on very large displays (table magnified beyond model size)
 
 ### Translation Calculation
 
