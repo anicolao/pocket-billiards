@@ -69,10 +69,9 @@ test.describe('Rendering: Cue Ball Pocketing', () => {
     // The default position (250, 250) is too far to reach the pocket at (0, 0)
     // with current friction. Move it to (150, 150) to match the unit test.
     await page.evaluate(() => {
-      window.store.dispatch({
-        type: 'balls/setBallPosition',
-        payload: { id: 0, position: { x: 150, y: 150 } }
-      });
+      // Use the setBallPosition action creator
+      const setBallPosition = { type: 'balls/setBallPosition', payload: { id: 0, position: { x: 150, y: 150 } } };
+      window.store.dispatch(setBallPosition);
     });
 
     // Wait for rendering to update after position change
