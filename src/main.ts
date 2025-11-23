@@ -1,6 +1,8 @@
 import { store } from './store';
 import { TableRenderer } from './rendering/renderer';
 import { BallRenderer } from './rendering/ballRenderer';
+import { physicsEngine } from './physicsEngine';
+import { shot } from './store/ballSlice';
 
 // Get the app container
 const appContainer = document.getElementById('app');
@@ -27,6 +29,12 @@ store.subscribe(() => {
   const state = store.getState();
   tableRenderer.drawTable(state.table.dimensions);
   ballRenderer.updateBalls(state.balls.balls, state.table.dimensions);
+  
+  // Start physics simulation if any ball is moving and simulation is not already running
+  const ballsMoving = state.balls.balls.some(b => b.active && (b.velocity.x !== 0 || b.velocity.y !== 0));
+  if (ballsMoving && !physicsEngine.isRunning()) {
+    physicsEngine.start();
+  }
 });
 
 // Initial draw
@@ -41,3 +49,16 @@ window.addEventListener('resize', () => {
   tableRenderer.drawTable(state.table.dimensions);
   ballRenderer.updateBalls(state.balls.balls, state.table.dimensions);
 });
+
+// Expose store and physicsEngine for testing/debugging
+declare global {
+  interface Window {
+    store: typeof store;
+    physicsEngine: typeof physicsEngine;
+    shot: typeof shot;
+  }
+}
+
+window.store = store;
+window.physicsEngine = physicsEngine;
+window.shot = shot;
