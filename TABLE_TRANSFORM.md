@@ -201,55 +201,89 @@ canvas.addEventListener('click', (event) => {
 })
 ```
 
-### Inverse Transform Process
+### Using DOMMatrix for Inverse Transformation
 
-The inverse transformation reverses the rendering transformation to convert screen coordinates back to table coordinates:
+The cleanest approach is to reuse the canvas rendering transformation by creating a DOMMatrix and inverting it. This eliminates the need for manual inverse transformation code and ensures consistency with the rendering transform.
 
-1. **Un-translate**: Subtract the centering offset
-2. **Un-rotate**: Apply inverse rotation (0° or -90°)
-3. **Un-scale**: Divide by scale factor
-
-**Landscape (no rotation):**
+**Building the transformation matrix:**
 ```typescript
-function screenToTableLandscape(screenX: number, screenY: number): { x: number, y: number } {
-  const tableX = (screenX - translationX) / scale
-  const tableY = (screenY - translationY) / scale
-  return { x: tableX, y: tableY }
+function buildTableTransform(isPortrait: boolean): DOMMatrix {
+  const matrix = new DOMMatrix()
+  
+  if (isPortrait) {
+    // Portrait: translate, rotate, scale, offset for playing surface
+    const offsetX = translationX
+    const offsetY = translationY + totalTableWidth * scale
+    matrix.translateSelf(offsetX, offsetY)
+    matrix.rotateSelf(90)  // 90° clockwise
+    matrix.scaleSelf(scale, scale)
+    matrix.translateSelf(railWidth, railWidth)
+  } else {
+    // Landscape: translate, scale, offset for playing surface
+    matrix.translateSelf(translationX, translationY)
+    matrix.scaleSelf(scale, scale)
+    matrix.translateSelf(railWidth, railWidth)
+  }
+  
+  return matrix
 }
 ```
 
-**Portrait (90° CCW inverse rotation):**
-```typescript
-function screenToTablePortrait(screenX: number, screenY: number): { x: number, y: number } {
-  // Remove screen translation
-  const adjustedX = screenX - translationX
-  const adjustedY = screenY - translationY
-  
-  // Undo scale
-  const scaledX = adjustedX / scale
-  const scaledY = adjustedY / scale
-  
-  // Undo rotation (reverse of: rotatedX = renderY, rotatedY = totalTableWidth - renderX)
-  const renderY = scaledX
-  const renderX = totalTableWidth - scaledY
-  
-  // Convert from renderable area coordinates to playing surface coordinates
-  const tableX = renderX - railWidth
-  const tableY = renderY - railWidth
-  
-  return { x: tableX, y: tableY }
-}
-```
-
-**Combined function:**
+**Converting screen coordinates to table coordinates:**
 ```typescript
 function screenToTable(screenX: number, screenY: number): { x: number, y: number } {
   const isPortrait = window.innerWidth < window.innerHeight
-  return isPortrait 
-    ? screenToTablePortrait(screenX, screenY)
-    : screenToTableLandscape(screenX, screenY)
+  const transform = buildTableTransform(isPortrait)
+  const inverseTransform = transform.inverse()
+  
+  // Apply inverse transformation to screen point
+  const point = new DOMPoint(screenX, screenY)
+  const tablePoint = point.matrixTransform(inverseTransform)
+  
+  return { x: tablePoint.x, y: tablePoint.y }
 }
 ```
+
+**Optimized version with cached transform:**
+```typescript
+// Cache the inverse transform to avoid recalculating on every input event
+let cachedInverseTransform: DOMMatrix | null = null
+let cachedIsPortrait: boolean | null = null
+
+function getInverseTransform(): DOMMatrix {
+  const isPortrait = window.innerWidth < window.innerHeight
+  
+  // Rebuild cache if orientation changed or not yet initialized
+  if (cachedInverseTransform === null || cachedIsPortrait !== isPortrait) {
+    const transform = buildTableTransform(isPortrait)
+    cachedInverseTransform = transform.inverse()
+    cachedIsPortrait = isPortrait
+  }
+  
+  return cachedInverseTransform
+}
+
+function screenToTable(screenX: number, screenY: number): { x: number, y: number } {
+  const inverseTransform = getInverseTransform()
+  const point = new DOMPoint(screenX, screenY)
+  const tablePoint = point.matrixTransform(inverseTransform)
+  
+  return { x: tablePoint.x, y: tablePoint.y }
+}
+
+// Call this when window resizes to invalidate the cache
+function invalidateTransformCache(): void {
+  cachedInverseTransform = null
+  cachedIsPortrait = null
+}
+```
+
+**Benefits of using DOMMatrix:**
+- Automatically handles complex transformation composition
+- Guaranteed consistency with canvas rendering transform
+- Built-in `inverse()` method eliminates manual calculation errors
+- Supports additional transformations without code changes
+- Browser-optimized matrix operations
 
 ### Bounds Checking
 
