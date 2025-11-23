@@ -1,0 +1,151 @@
+name: Copilot Runner Setup
+
+on:
+  workflow_dispatch:
+  pull_request:
+
+permissions:
+  contents: read
+  actions: read
+
+jobs:
+  copilot-setup:
+    runs-on: ubuntu-24.04
+    
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build application
+        run: npm run build
+
+      - name: Download test artifacts from main branch
+        id: download-artifacts
+        continue-on-error: true
+        uses: dawidd6/action-download-artifact@v6
+        with:
+          workflow: deploy-main.yml
+          branch: main
+          name: |
+            unit-test-output
+            e2e-test-results
+            test-status-summary
+          path: ./test-artifacts
+          if_no_artifact_found: warn
+
+      - name: Create startup summary for Copilot
+        if: always()
+        run: |
+          cat > startup-summary.md << 'EOF'
+          # Pocket Billiards Development Environment Status
+          
+          ## Environment Setup
+          - ✅ Ubuntu 24.04 with Node.js 20
+          - ✅ Dependencies installed
+          - ✅ Application built successfully
+          
+          ## Test Status from Main Branch
+          
+          EOF
+          
+          # Check if we successfully downloaded test artifacts
+          if [ -f "./test-artifacts/test-status-summary.md" ]; then
+            echo "### Latest Test Results from Main" >> startup-summary.md
+            echo "" >> startup-summary.md
+            cat ./test-artifacts/test-status-summary.md >> startup-summary.md
+            echo "" >> startup-summary.md
+            
+            # Add unit test details if available
+            if [ -f "./test-artifacts/unit-test-output.txt" ]; then
+              echo "### Unit Test Details" >> startup-summary.md
+              echo "" >> startup-summary.md
+              echo '```' >> startup-summary.md
+              tail -n 20 ./test-artifacts/unit-test-output.txt >> startup-summary.md
+              echo '```' >> startup-summary.md
+              echo "" >> startup-summary.md
+            fi
+            
+            # Add coverage details if available
+            if [ -f "./test-artifacts/unit-test-coverage-output.txt" ]; then
+              echo "### Code Coverage Details" >> startup-summary.md
+              echo "" >> startup-summary.md
+              echo '```' >> startup-summary.md
+              grep -A 20 "% Coverage report" ./test-artifacts/unit-test-coverage-output.txt | tail -n 20 >> startup-summary.md || echo "Coverage details not available" >> startup-summary.md
+              echo '```' >> startup-summary.md
+              echo "" >> startup-summary.md
+            fi
+            
+            # Add E2E test details if available
+            if [ -f "./test-artifacts/e2e-test-output.txt" ]; then
+              echo "### E2E Test Details" >> startup-summary.md
+              echo "" >> startup-summary.md
+              echo '```' >> startup-summary.md
+              tail -n 30 ./test-artifacts/e2e-test-output.txt >> startup-summary.md
+              echo '```' >> startup-summary.md
+              echo "" >> startup-summary.md
+            fi
+          else
+            echo "⚠️ **Note**: Could not download test artifacts from main branch." >> startup-summary.md
+            echo "This might be because:" >> startup-summary.md
+            echo "- No successful workflow run exists on main branch yet" >> startup-summary.md
+            echo "- Test artifacts have expired (retention period exceeded)" >> startup-summary.md
+            echo "" >> startup-summary.md
+            echo "Please run tests manually to verify current state." >> startup-summary.md
+            echo "" >> startup-summary.md
+          fi
+          
+          cat >> startup-summary.md << 'EOF'
+          ## Quick Commands
+          ```bash
+          # Development
+          npm run dev              # Start dev server (port 3000)
+          npm test                 # Run unit tests
+          npm run test:coverage    # Run unit tests with coverage
+          npm run test:e2e         # Run E2E tests
+          npm run test:e2e:ui      # Run E2E tests with Playwright UI
+          
+          # Build
+          npm run build            # Build TypeScript and bundle with Vite
+          npm run preview          # Preview production build
+          ```
+          
+          ## Architecture Notes
+          - **Canvas-based rendering**: HTML5 Canvas with TypeScript
+          - **State management**: Redux Toolkit for predictable state
+          - **Testing strategy**: Unit tests for logic, E2E tests for rendering verification
+          - **Zero-tolerance E2E**: Screenshot comparison with maxDiffPixels: 0
+          - **Portrait mode support**: Automatic 90° rotation for portrait displays
+          
+          ## Important Testing Rules
+          
+          From COPILOT_INSTRUCTIONS.md:
+          - **NEVER use hardcoded timeouts** in tests
+          - **Wait for AT MOST ONE animation frame** before screenshots
+          - Use event-based waiting (requestAnimationFrame, element visibility, etc.)
+          - Redux actions are ALWAYS SYNCHRONOUS
+          
+          ## E2E Testing Philosophy
+          
+          From E2E_TESTING.md:
+          - **Zero-tolerance policy**: Tests run exclusively in CI with exact reproducibility
+          - **Screenshot baseline**: Pixel-perfect comparison (maxDiffPixels: 0)
+          - **Rendering verification**: Validates that renderer displays game states correctly
+          EOF
+          
+          cat startup-summary.md >> $GITHUB_STEP_SUMMARY
+
+      - name: Upload startup summary
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: startup-summary
+          path: startup-summary.md
