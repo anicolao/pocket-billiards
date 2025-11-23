@@ -7,13 +7,17 @@ test('renders empty pool table', async ({ page }) => {
   const canvas = page.locator('canvas');
   await expect(canvas).toBeVisible();
 
-  // Wait a bit for rendering to complete
-  await page.waitForTimeout(500);
-
-  // Take a screenshot and compare with baseline
-  await expect(page).toHaveScreenshot('empty-table.png', {
-    maxDiffPixels: 100,
+  // Wait for next animation frame to ensure rendering is complete
+  await page.evaluate(() => {
+    return new Promise((resolve) => {
+      requestAnimationFrame(() => {
+        requestAnimationFrame(resolve);
+      });
+    });
   });
+
+  // Take a screenshot and compare with baseline (must be 100% identical)
+  await expect(page).toHaveScreenshot('empty-table.png');
 });
 
 test('table has correct canvas dimensions', async ({ page }) => {
