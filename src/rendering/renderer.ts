@@ -4,6 +4,9 @@ export class TableRenderer {
   private canvas: HTMLCanvasElement;
   private ctx: CanvasRenderingContext2D;
 
+  // Rendering constants
+  private static readonly CORNER_POCKET_INSET_RATIO = 0.3;
+
   constructor(canvas: HTMLCanvasElement) {
     this.canvas = canvas;
     const context = canvas.getContext('2d');
@@ -89,7 +92,7 @@ export class TableRenderer {
     this.ctx.fillStyle = '#000000'; // Black pockets
 
     // Corner pockets (slightly inset from the corners)
-    const cornerInset = pocketRadius * 0.3;
+    const cornerInset = pocketRadius * TableRenderer.CORNER_POCKET_INSET_RATIO;
     const pockets = [
       // Top-left
       { x: railWidth + cornerInset, y: railWidth + cornerInset },
