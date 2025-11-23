@@ -114,7 +114,8 @@ src/
   │   ├── index.ts
   │   ├── gameSlice.ts
   │   ├── tableSlice.ts
-  │   └── physicsSlice.ts
+  │   ├── physicsSlice.ts
+  │   └── uiSlice.ts
   ├── physics/              # Physics engine
   │   ├── collision.ts
   │   ├── integration.ts
