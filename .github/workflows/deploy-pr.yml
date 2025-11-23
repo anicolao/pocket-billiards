@@ -1,4 +1,4 @@
-name: Deploy PR Preview
+name: Deploy PR to GitHub Pages
 
 on:
   pull_request:
@@ -6,11 +6,16 @@ on:
 
 permissions:
   contents: read
+  pages: write
+  id-token: write
   pull-requests: write
 
 jobs:
-  deploy-preview:
+  build-and-deploy:
     runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}pr-${{ github.event.number }}/
     
     steps:
       - name: Checkout
@@ -25,29 +30,32 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
-      - name: Build
+      - name: Build with base path
         run: npm run build
-
-      - name: Deploy to Netlify
-        uses: nwtgck/actions-netlify@v3.0
-        with:
-          publish-dir: './dist'
-          production-deploy: false
-          github-token: ${{ secrets.GITHUB_TOKEN }}
-          deploy-message: "Deploy from PR #${{ github.event.number }}"
-          alias: pr-${{ github.event.number }}
-          enable-commit-comment: false
         env:
-          NETLIFY_AUTH_TOKEN: ${{ secrets.NETLIFY_AUTH_TOKEN }}
-          NETLIFY_SITE_ID: ${{ secrets.NETLIFY_SITE_ID }}
-        id: netlify
+          VITE_BASE_PATH: /pocket-billiards/pr-${{ github.event.number }}/
+
+      - name: Create deployment directory structure
+        run: |
+          mkdir -p deployment/pr-${{ github.event.number }}
+          cp -r dist/* deployment/pr-${{ github.event.number }}/
+
+      - name: Upload artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: ./deployment
+
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
 
       - name: Comment PR with deployment URL
         uses: actions/github-script@v7
         with:
           script: |
-            const deployUrl = '${{ steps.netlify.outputs.deploy-url }}';
-            const comment = `🚀 **Preview Deployment**\n\nYour changes have been deployed:\n\n**Preview URL:** ${deployUrl}\n\n_Updated on ${new Date().toUTCString()}_\n\n---\n\n**Note:** First-time setup requires Netlify tokens. To configure:\n1. Create a free account at [Netlify](https://netlify.com)\n2. Generate a [personal access token](https://app.netlify.com/user/applications#personal-access-tokens)\n3. Create a new site and copy the Site ID\n4. Add \`NETLIFY_AUTH_TOKEN\` and \`NETLIFY_SITE_ID\` to repository secrets\n\nAlternatively, download the build artifact from the [Actions tab](https://github.com/${context.repo.owner}/${context.repo.repo}/actions/runs/${context.runId}) and open \`index.html\` locally.`;
+            const baseUrl = '${{ steps.deployment.outputs.page_url }}';
+            const prUrl = `${baseUrl}pr-${{ github.event.number }}/`;
+            const comment = `🚀 **Preview Deployment**\n\nYour changes have been deployed to GitHub Pages:\n\n**Preview URL:** ${prUrl}\n\n_Updated on ${new Date().toUTCString()}_`;
             
             // Find existing comment
             const { data: comments } = await github.rest.issues.listComments({
@@ -78,10 +86,3 @@ jobs:
                 body: comment
               });
             }
-
-      - name: Upload build artifact as backup
-        uses: actions/upload-artifact@v4
-        with:
-          name: pr-${{ github.event.number }}-build
-          path: ./dist
-          retention-days: 30
