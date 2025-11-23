@@ -12,6 +12,8 @@ export class BallRenderer {
       scale: number;
     };
   };
+  private lastScale = 0;
+  private readonly CANVAS_PADDING_MULTIPLIER = 2.5;
 
   constructor(
     container: HTMLElement,
@@ -56,6 +58,10 @@ export class BallRenderer {
     const { x: tableX, y: tableY, scale } = this.tableRenderer.calculateTableBounds(tableDimensions);
     const railWidth = tableDimensions.railWidth;
 
+    // Track if scale has changed
+    const scaleChanged = scale !== this.lastScale;
+    this.lastScale = scale;
+
     // Update each ball canvas
     balls.forEach((ball, index) => {
       if (index >= this.canvases.length) return;
@@ -69,31 +75,56 @@ export class BallRenderer {
       }
 
       // Calculate screen position
-      // Ball position is relative to playing surface (felt)
-      // Add rail offset to get position relative to table origin
-      const screenX = tableX + (railWidth + ball.position.x) * scale;
-      const screenY = tableY + (railWidth + ball.position.y) * scale;
+      const screenPosition = this.calculateScreenPosition(
+        ball.position,
+        tableX,
+        tableY,
+        scale,
+        railWidth
+      );
       const screenRadius = ball.radius * scale;
 
-      // Size canvas to fit ball with some padding
-      const canvasSize = Math.ceil(screenRadius * 2.5);
-      canvas.width = canvasSize;
-      canvas.height = canvasSize;
+      // Size canvas to fit ball with padding (only if scale changed)
+      const canvasSize = Math.ceil(screenRadius * this.CANVAS_PADDING_MULTIPLIER);
+      if (scaleChanged || canvas.width !== canvasSize) {
+        canvas.width = canvasSize;
+        canvas.height = canvasSize;
+      }
 
       // Position canvas centered on ball
-      const canvasX = screenX - canvasSize / 2;
-      const canvasY = screenY - canvasSize / 2;
+      const canvasX = screenPosition.x - canvasSize / 2;
+      const canvasY = screenPosition.y - canvasSize / 2;
       canvas.style.transform = `translate3d(${canvasX}px, ${canvasY}px, 0)`;
       canvas.style.display = 'block';
 
-      // Draw the ball
-      this.drawBall(ctx, canvasSize / 2, canvasSize / 2, screenRadius, ball.type);
+      // Draw the ball (redraw if canvas was resized)
+      if (scaleChanged || canvas.width !== canvasSize) {
+        this.drawBall(ctx, canvasSize / 2, canvasSize / 2, screenRadius, ball.type);
+      }
     });
 
     // Hide unused canvases
     for (let i = balls.length; i < this.canvases.length; i++) {
       this.canvases[i].style.display = 'none';
     }
+  }
+
+  /**
+   * Calculate screen position from table coordinates
+   */
+  private calculateScreenPosition(
+    position: { x: number; y: number },
+    tableX: number,
+    tableY: number,
+    scale: number,
+    railWidth: number
+  ): { x: number; y: number } {
+    // Ball position is relative to playing surface (felt)
+    // Add rail offset to get position relative to table origin
+    return {
+      x: tableX + (railWidth + position.x) * scale,
+      y: tableY + (railWidth + position.y) * scale,
+    };
   }
 
   /**
