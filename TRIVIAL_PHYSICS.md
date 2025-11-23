@@ -34,6 +34,7 @@ Each ball maintains the following physics-relevant state (from `ballSlice.ts`):
 ```typescript
 interface Ball {
   id: number;                          // Ball number (0 = cue ball, 1-15 = object balls)
+  type: BallType;                      // 'cue', 'solid', 'stripe', 'eight'
   position: { x: number; y: number };  // Table units
   velocity: { x: number; y: number };  // Table units per second
   radius: number;                      // Table units (11.25 for standard balls)
@@ -123,8 +124,10 @@ function updatePhysics(currentTime: number, state: PhysicsState, balls: Ball[]):
   // Consume accumulated time in fixed timesteps
   while (state.accumulatedTime >= PHYSICS_TIMESTEP) {
     // Update all active balls
-    for (const ball of balls.filter(b => b.active)) {
-      updateBallPhysics(ball, PHYSICS_TIMESTEP);
+    for (const ball of balls) {
+      if (ball.active) {
+        updateBallPhysics(ball, PHYSICS_TIMESTEP);
+      }
     }
     
     state.accumulatedTime -= PHYSICS_TIMESTEP;
@@ -157,6 +160,10 @@ function updateBallPhysics(ball: Ball, dt: number): void {
     return;
   }
   
+  // Update position first (using current velocity for proper Verlet integration)
+  ball.position.x += ball.velocity.x * dt;
+  ball.position.y += ball.velocity.y * dt;
+  
   // Apply friction deceleration (exponential decay)
   // velocity(t) = velocity(0) * e^(-friction * t)
   // Discrete approximation: velocity *= (1 - friction * dt)
@@ -165,10 +172,6 @@ function updateBallPhysics(ball: Ball, dt: number): void {
   // Apply friction to both velocity components
   ball.velocity.x *= decayFactor;
   ball.velocity.y *= decayFactor;
-  
-  // Update position (Verlet integration)
-  ball.position.x += ball.velocity.x * dt;
-  ball.position.y += ball.velocity.y * dt;
 }
 ```
 
