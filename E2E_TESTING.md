@@ -125,15 +125,35 @@ For each significant moment captured during test execution, the framework genera
 
 ### Screenshot Organization
 
-Screenshots are stored in a `screenshots/` subdirectory within each test directory. Files are numbered with leading zeros to enable lexicographic sorting, making it easy to review the game progression in order.
+Each e2e test is organized in its own numbered subdirectory (e.g., `001-initial-setup/`, `002-break-shot/`, etc.), which contains the test file, its README, and its screenshots subdirectory. This organization keeps all artifacts for a single user story test together.
 
-**Naming Convention**: `####-description.png` where `####` is a zero-padded sequence number.
+**Directory Structure**:
+```
+tests/e2e/
+├── 001-initial-setup/
+│   ├── README.md
+│   ├── table.spec.ts
+│   └── table.spec.ts-snapshots/
+│       ├── screenshots-0000-initial-table-landscape.png
+│       └── screenshots-0001-initial-table-portrait.png
+├── 002-break-shot/
+│   ├── README.md
+│   ├── break.spec.ts
+│   └── break.spec.ts-snapshots/
+│       ├── screenshots-0000-before-break.png
+│       ├── screenshots-0001-ball-collision.png
+│       └── screenshots-0002-after-break.png
+```
+
+Screenshots within each test's snapshots subdirectory (named `<test-file>.spec.ts-snapshots/` by Playwright convention) are named with the prefix `screenshots-` followed by a zero-padded sequence number and description.
+
+**Screenshot Naming Convention**: `screenshots-####-description.png` where `####` is a zero-padded sequence number.
 
 **Examples**:
-- `0000-breakshot.png` - Initial break shot
-- `0001-sink-9-ball.png` - Nine ball sinking into pocket
-- `0002-rail-collision.png` - Ball hitting the rail
-- `0003-ball-ball-contact.png` - Collision between two balls
+- `screenshots-0000-breakshot.png` - Initial break shot
+- `screenshots-0001-sink-9-ball.png` - Nine ball sinking into pocket
+- `screenshots-0002-rail-collision.png` - Ball hitting the rail
+- `screenshots-0003-ball-ball-contact.png` - Collision between two balls
 
 Each screenshot corresponds to exactly one significant moment in the simulation, with the sequence number indicating the chronological order of events.
 
@@ -232,11 +252,20 @@ When executing a UI-driven test:
 
 ### Test Naming and Discovery
 
-Tests are organized by type and scenario, with clear naming conventions that indicate their purpose and scope:
+Tests are organized in numbered subdirectories at the top level of `tests/e2e/`, with each directory representing a single user story or test scenario. The directory contains all artifacts for that test: the test spec file, README documentation, and Playwright snapshots subdirectory.
 
-- `rendering/<scenario-name>`: Rendering verification tests
-- `physics/<scenario-name>`: Physics validation tests  
-- `ui/<scenario-name>`: UI integration tests
+**Directory Naming Convention**: `###-scenario-name/` where `###` is a zero-padded sequence number.
+
+**Examples**:
+- `001-initial-setup/` - Initial table rendering verification
+- `002-break-shot/` - Break shot physics and rendering test
+- `003-ball-collision/` - Ball-to-ball collision test
+- `004-pocket-sink/` - Ball pocketing test
+
+Within each test directory:
+- Test spec file: `*.spec.ts` (e.g., `table.spec.ts`, `break.spec.ts`)
+- Documentation: `README.md` with embedded screenshots
+- Snapshots: `*.spec.ts-snapshots/` subdirectory (auto-created by Playwright) containing `screenshots-####-description.png` files
 
 The test framework can discover and execute tests automatically based on directory structure and naming patterns.
 
