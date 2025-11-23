@@ -70,7 +70,7 @@ Shows the state immediately after the `shot` action is dispatched. The ball shou
 Screenshots are captured every 30 physics steps (approximately 0.5 seconds of simulation time at 60 FPS) showing the ball's progress toward the pocket.
 
 ### Final State
-![Final ball pocketed](pocketing.spec.ts-snapshots/####-final-ball-pocketed-chromium-linux.png)
+![Final ball pocketed](pocketing.spec.ts-snapshots/0003-final-ball-pocketed-chromium-linux.png)
 
 Shows the final state after the ball has been pocketed. The ball should no longer be visible on the table (inactive).
 
