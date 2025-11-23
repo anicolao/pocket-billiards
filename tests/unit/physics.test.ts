@@ -2,6 +2,7 @@ import { describe, it, expect } from 'vitest';
 import { runPhysicsSimulation } from '../../src/simulator';
 import { Ball } from '../../src/store/ballSlice';
 import { Pocket } from '../../src/store/tableSlice';
+import { MAX_SHOT_VELOCITY } from '../../src/physics';
 
 /**
  * Physics and State Management Test: Cue Ball Pocketing
@@ -49,7 +50,7 @@ describe('Physics: Cue Ball Pocketing', () => {
     const cueBall: Ball = {
       id: 0,
       type: 'cue',
-      position: { x: 150, y: 150 }, // Positioned closer to top left pocket
+      position: { x: 150, y: 150 },
       velocity: { x: 0, y: 0 },
       active: true,
       radius: 11.25,
@@ -59,15 +60,14 @@ describe('Physics: Cue Ball Pocketing', () => {
     const targetPocket = { x: 0, y: 0 };
     
     // Calculate direction vector from cue ball to pocket
-    const dx = targetPocket.x - cueBall.position.x; // -150
-    const dy = targetPocket.y - cueBall.position.y; // -150
-    const distance = Math.sqrt(dx * dx + dy * dy); // ~212 units
+    const dx = targetPocket.x - cueBall.position.x;
+    const dy = targetPocket.y - cueBall.position.y;
+    const distance = Math.sqrt(dx * dx + dy * dy);
     
-    // Use high power to ensure ball reaches the pocket
-    const speed = 500; // 100% of MAX_SHOT_VELOCITY
+    // Use maximum power to ensure ball reaches the pocket
     const velocity = {
-      x: (dx / distance) * speed,
-      y: (dy / distance) * speed,
+      x: (dx / distance) * MAX_SHOT_VELOCITY,
+      y: (dy / distance) * MAX_SHOT_VELOCITY,
     };
     
     // Set the shot velocity (this would normally be done via SHOT action)
