@@ -14,17 +14,33 @@ The e2e testing framework serves two critical purposes:
 
 ## Core Testing Approach
 
-### Two-Tier Testing Model
+### Three-Tier Testing Model
 
-The testing strategy employs two complementary testing modes that validate different aspects of the system:
+The testing strategy employs three complementary testing modes that validate different aspects of the system and enable precise isolation of issues:
 
-#### 1. Action Replay Testing (Redux-Based)
+#### 1. Rendering Verification Testing (Action Replay with Screenshot Validation)
+
+This mode validates that the renderer correctly displays game states by replaying actions and capturing visual output.
+
+**Purpose**: Verify that the rendering system correctly visualizes game states produced by the physics engine and state management.
+
+**How it works**: The test framework injects recorded SHOT actions directly into the Redux store, runs the physics simulation, and captures screenshots at significant moments. These screenshots are compared against baseline images to ensure the renderer produces pixel-perfect output for known game states.
+
+**What it validates**:
+- Renderer correctness for all game states
+- Visual consistency across code changes
+- Proper rendering of balls, table elements, and UI overlays
+- Screenshot baseline accuracy
+
+**Advantages**: Fast execution, isolates rendering issues from input handling, establishes visual regression baselines.
+
+#### 2. Physics and State Management Testing (Action Replay without Rendering)
 
 This mode validates the core game simulation and state management by directly replaying recorded player actions into the system.
 
 **Purpose**: Verify that the physics engine, game rules, and state transitions produce consistent, deterministic results.
 
-**How it works**: The test framework injects recorded SHOT actions directly into the Redux store, bypassing the UI layer entirely. Each SHOT action contains the precise parameters that define a player's shot: power level, direction, and contact point on the cue ball. The system then runs the physics simulation and captures the results.
+**How it works**: The test framework injects recorded SHOT actions directly into the Redux store, bypassing the UI layer entirely. Each SHOT action contains the precise parameters that define a player's shot: power level, direction, and contact point on the cue ball. The system then runs the physics simulation and validates the resulting state programmatically.
 
 **What it validates**:
 - Physics engine determinism and accuracy
@@ -32,9 +48,9 @@ This mode validates the core game simulation and state management by directly re
 - Event detection and handling
 - Ball behavior and collision responses
 
-**Advantages**: Fast execution, deterministic results, isolation from UI concerns.
+**Advantages**: Fastest execution, deterministic results, isolation from rendering and UI concerns.
 
-#### 2. UI-Driven Testing (Playwright-Based)
+#### 3. UI-Driven Testing (Playwright-Based)
 
 This mode validates the complete user interaction flow by simulating actual user inputs through the UI.
 
@@ -47,8 +63,19 @@ This mode validates the complete user interaction flow by simulating actual user
 - UI state management and visual feedback
 - Coordinate transformations and hit detection
 - Complete user interaction flow
+- Input-to-action translation accuracy
 
 **Advantages**: End-to-end validation, real-world scenario simulation, UI regression detection.
+
+### Diagnostic Value of the Three-Tier Approach
+
+This three-tier structure enables precise issue isolation:
+
+- **If Rendering Verification fails but Physics Testing passes**: The issue is in the renderer
+- **If UI-Driven Testing fails but Rendering Verification passes**: The issue is in input translation or event handling
+- **If Physics Testing fails**: The issue is in the core physics engine or game logic
+
+This diagnostic capability significantly reduces debugging time by immediately identifying which subsystem contains the defect.
 
 ## Game Recording
 
@@ -130,9 +157,9 @@ In addition to visual documentation, the framework generates programmatic assert
 
 ## Test Execution Workflow
 
-### Replay Test Execution
+### Rendering Verification Test Execution
 
-When executing an action replay test:
+When executing a rendering verification test:
 
 1. **Load Recording**: Read the sequence of SHOT actions from the game recording
 2. **Initialize State**: Set up the initial game state (break position, player assignment)
@@ -140,8 +167,21 @@ When executing an action replay test:
 4. **Run Simulation**: Execute the physics simulation until the table reaches a stable state
 5. **Capture Moments**: Detect and record all significant moments during simulation
 6. **Generate Screenshots**: Create visual captures at each significant moment
-7. **Run Assertions**: Execute verification code to check state correctness
-8. **Generate Documentation**: Produce the test README with screenshots and descriptions
+7. **Compare Screenshots**: Perform pixel-perfect comparison against baseline screenshots
+8. **Run Assertions**: Execute verification code to check rendering correctness
+9. **Generate Documentation**: Produce the test README with screenshots and descriptions
+
+### Physics and State Management Test Execution
+
+When executing a physics and state management test:
+
+1. **Load Recording**: Read the sequence of SHOT actions from the game recording
+2. **Initialize State**: Set up the initial game state (break position, player assignment)
+3. **Replay Actions**: For each SHOT action, inject it into the Redux store
+4. **Run Simulation**: Execute the physics simulation until the table reaches a stable state
+5. **Capture State**: Record complete game state at each significant moment
+6. **Run Assertions**: Execute verification code to check state correctness
+7. **Validate Determinism**: Ensure exact reproducibility of physics calculations
 
 ### UI-Driven Test Execution
 
@@ -154,12 +194,19 @@ When executing a UI-driven test:
 5. **Monitor Actions**: Verify that simulated touches generate the expected SHOT actions
 6. **Capture Moments**: Detect and record all significant moments during simulation
 7. **Generate Screenshots**: Create visual captures via Playwright screenshot API
-8. **Run Assertions**: Execute verification code via Playwright assertions
-9. **Generate Documentation**: Produce the test README with screenshots and descriptions
+8. **Compare Screenshots**: Perform pixel-perfect comparison against baseline screenshots
+9. **Run Assertions**: Execute verification code via Playwright assertions
+10. **Generate Documentation**: Produce the test README with screenshots and descriptions
 
 ## Test Suite Organization
 
 ### Test Categories
+
+**Rendering Verification Tests**: Action replay tests focused on validating renderer correctness. Each test replays a game scenario and verifies pixel-perfect screenshot accuracy.
+
+**Physics Validation Tests**: Action replay tests focused on physics engine correctness. These tests validate state without rendering overhead.
+
+**UI Integration Tests**: UI-driven tests that validate the complete input-to-action pipeline. These ensure touch gestures produce the correct SHOT actions.
 
 **Validation Tests**: Short, focused games that test specific scenarios (scratch on break, combination shots, difficult banks). Used for rapid validation during development.
 
@@ -169,21 +216,47 @@ When executing a UI-driven test:
 
 ### Test Naming and Discovery
 
-Tests are organized by game type and scenario, with clear naming conventions that indicate their purpose and scope. The test framework can discover and execute tests automatically based on directory structure and naming patterns.
+Tests are organized by type and scenario, with clear naming conventions that indicate their purpose and scope:
+
+- `rendering/<scenario-name>`: Rendering verification tests
+- `physics/<scenario-name>`: Physics validation tests  
+- `ui/<scenario-name>`: UI integration tests
+
+The test framework can discover and execute tests automatically based on directory structure and naming patterns.
 
 ## Tolerance and Determinism
 
-### Physics Tolerance
+### Zero-Tolerance Policy
 
-The physics engine must produce deterministic results for identical inputs. However, screenshots and visual verification acknowledge that minor rendering variations may occur across platforms or configurations.
+Since all e2e tests execute exclusively in the GitHub Actions CI environment, the testing framework enforces strict determinism with zero tolerance for variation.
 
-**Assertion Tolerances**: Automated verification allows small floating-point tolerances when comparing positions and velocities.
+**Physics Determinism**: The physics engine must produce identical numerical results for identical inputs across all test runs. Floating-point calculations must be reproducible down to the exact bit pattern.
 
-**Visual Verification**: Human reviewers focus on qualitative correctness (Did the ball go in the pocket? Did the collision occur?) rather than pixel-perfect matching.
+**Rendering Determinism**: Screenshots must match baseline images pixel-for-pixel. Any rendering variation, no matter how minor, indicates a regression or platform inconsistency.
 
-### Platform Considerations
+**Assertion Precision**: Automated verification uses exact equality checks for all numerical comparisons. Ball positions, velocities, and game state values must match expected values precisely.
 
-While the core physics must be deterministic, the testing framework acknowledges that screenshot appearance may vary slightly across different rendering contexts. Test documentation emphasizes behavioral correctness over visual exactness.
+### CI Environment Consistency
+
+All tests run in a controlled GitHub Actions environment with:
+
+- Fixed operating system and browser versions
+- Consistent rendering context and canvas implementation
+- Deterministic floating-point behavior
+- Reproducible screenshot capture
+
+This controlled environment eliminates platform variability and enables the strict zero-tolerance policy. Any test failure indicates an actual regression or defect, not environmental differences.
+
+### Baseline Management
+
+Screenshot baselines are stored in the repository and serve as the canonical reference for rendering correctness. When intentional visual changes are made:
+
+1. Review the visual differences carefully
+2. Verify the changes are correct and intentional
+3. Update the baseline screenshots
+4. Document the reason for the baseline update
+
+Baseline updates should be rare and always associated with deliberate rendering improvements or feature additions.
 
 ## Benefits and Use Cases
 
@@ -218,4 +291,4 @@ The testing framework is designed to support future enhancements:
 
 ## Summary
 
-This e2e testing strategy provides comprehensive validation of the Pocket Billiards game through two complementary testing approaches. Action replay testing validates core simulation correctness through direct state injection, while UI-driven testing validates the complete user interaction pipeline. Together with automated verification and human-reviewable visual documentation, this approach ensures both technical correctness and qualitative gameplay fidelity.
+This e2e testing strategy provides comprehensive validation of the Pocket Billiards game through three complementary testing approaches. Rendering verification testing validates visual correctness through pixel-perfect screenshot comparison. Physics and state management testing validates core simulation correctness through direct state injection. UI-driven testing validates the complete user interaction pipeline from touch input to action generation. Together with strict zero-tolerance policies enabled by the consistent GitHub Actions CI environment, automated verification, and human-reviewable visual documentation, this approach ensures both technical correctness and qualitative gameplay fidelity while enabling precise isolation of defects to specific subsystems.
