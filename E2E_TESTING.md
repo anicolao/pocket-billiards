@@ -134,26 +134,26 @@ tests/e2e/
 │   ├── README.md
 │   ├── table.spec.ts
 │   └── table.spec.ts-snapshots/
-│       ├── screenshots-0000-initial-table-landscape.png
-│       └── screenshots-0001-initial-table-portrait.png
+│       ├── 0000-initial-table-landscape-chromium-linux.png
+│       └── 0001-initial-table-portrait-chromium-linux.png
 ├── 002-break-shot/
 │   ├── README.md
 │   ├── break.spec.ts
 │   └── break.spec.ts-snapshots/
-│       ├── screenshots-0000-before-break.png
-│       ├── screenshots-0001-ball-collision.png
-│       └── screenshots-0002-after-break.png
+│       ├── 0000-before-break-chromium-linux.png
+│       ├── 0001-ball-collision-chromium-linux.png
+│       └── 0002-after-break-chromium-linux.png
 ```
 
-Screenshots within each test's snapshots subdirectory (named `<test-file>.spec.ts-snapshots/` by Playwright convention) are named with the prefix `screenshots-` followed by a zero-padded sequence number and description.
+Screenshots within each test's snapshots subdirectory (named `<test-file>.spec.ts-snapshots/` by Playwright convention) are numbered with leading zeros to enable lexicographic sorting, making it easy to review the game progression in order. Playwright automatically appends the browser and platform suffix (e.g., `-chromium-linux.png`).
 
-**Screenshot Naming Convention**: `screenshots-####-description.png` where `####` is a zero-padded sequence number.
+**Screenshot Naming Convention**: `####-description.png` where `####` is a zero-padded sequence number.
 
 **Examples**:
-- `screenshots-0000-breakshot.png` - Initial break shot
-- `screenshots-0001-sink-9-ball.png` - Nine ball sinking into pocket
-- `screenshots-0002-rail-collision.png` - Ball hitting the rail
-- `screenshots-0003-ball-ball-contact.png` - Collision between two balls
+- `0000-breakshot.png` - Initial break shot
+- `0001-sink-9-ball.png` - Nine ball sinking into pocket
+- `0002-rail-collision.png` - Ball hitting the rail
+- `0003-ball-ball-contact.png` - Collision between two balls
 
 Each screenshot corresponds to exactly one significant moment in the simulation, with the sequence number indicating the chronological order of events.
 
@@ -265,7 +265,7 @@ Tests are organized in numbered subdirectories at the top level of `tests/e2e/`,
 Within each test directory:
 - Test spec file: `*.spec.ts` (e.g., `table.spec.ts`, `break.spec.ts`)
 - Documentation: `README.md` with embedded screenshots
-- Snapshots: `*.spec.ts-snapshots/` subdirectory (auto-created by Playwright) containing `screenshots-####-description.png` files
+- Snapshots: `*.spec.ts-snapshots/` subdirectory (auto-created by Playwright) containing `####-description-browser-platform.png` files
 
 The test framework can discover and execute tests automatically based on directory structure and naming patterns.
 
