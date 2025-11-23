@@ -1,0 +1,8 @@
+
+> pocket-billiards@0.0.1 test:e2e
+> playwright test
+
+
+Running 6 tests using 1 worker
+······
+  6 passed (3.4s)
