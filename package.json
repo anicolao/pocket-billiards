@@ -22,9 +22,11 @@
   ],
   "author": "",
   "license": "GPL-3.0",
+  "dependencies": {
+    "@reduxjs/toolkit": "^2.10.1"
+  },
   "devDependencies": {
     "@playwright/test": "^1.56.1",
-    "@reduxjs/toolkit": "^2.10.1",
     "@vitejs/plugin-react": "^5.1.1",
     "@vitest/coverage-v8": "^4.0.13",
     "@vitest/ui": "^4.0.13",
