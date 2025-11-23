@@ -74,7 +74,7 @@ jobs:
           if [ -f unit-test-coverage-output.txt ]; then
             echo '```' >> $GITHUB_STEP_SUMMARY
             # Extract coverage table from vitest output
-            grep -A 20 "% Coverage report" unit-test-coverage-output.txt | tail -n 20 >> $GITHUB_STEP_SUMMARY
+            grep -A 20 "% Coverage report" unit-test-coverage-output.txt >> $GITHUB_STEP_SUMMARY
             echo '```' >> $GITHUB_STEP_SUMMARY
           else
             echo "❌ Coverage output not found" >> $GITHUB_STEP_SUMMARY

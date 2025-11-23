@@ -79,7 +79,7 @@ jobs:
               echo "### Code Coverage Details" >> startup-summary.md
               echo "" >> startup-summary.md
               echo '```' >> startup-summary.md
-              grep -A 20 "% Coverage report" ./test-artifacts/unit-test-coverage-output.txt | tail -n 20 >> startup-summary.md || echo "Coverage details not available" >> startup-summary.md
+              grep -A 20 "% Coverage report" ./test-artifacts/unit-test-coverage-output.txt >> startup-summary.md || echo "Coverage details not available" >> startup-summary.md
               echo '```' >> startup-summary.md
               echo "" >> startup-summary.md
             fi
