@@ -20,16 +20,11 @@ test.describe('Rendering: Initial Table Setup', () => {
     const canvas = page.locator('canvas').first();
     await expect(canvas).toBeVisible();
 
-    // Wait for rendering to stabilize
-    // Per E2E_TESTING.md: "Run Simulation: Execute the physics simulation until the table reaches a stable state"
+    // Wait for rendering to complete (at most one animation frame)
+    // Per COPILOT_INSTRUCTIONS.md: "Wait for AT MOST ONE animation frame when taking screenshots"
     await page.evaluate(() => {
       return new Promise((resolve) => {
-        // Wait for multiple frames to ensure all canvases are positioned and rendered
-        requestAnimationFrame(() => {
-          requestAnimationFrame(() => {
-            requestAnimationFrame(resolve);
-          });
-        });
+        requestAnimationFrame(resolve);
       });
     });
 
@@ -72,12 +67,10 @@ test.describe('Rendering: Initial Table Setup', () => {
     const canvases = page.locator('canvas');
     await expect(canvases.first()).toBeVisible();
 
-    // Wait for rendering to stabilize
+    // Wait for rendering to complete (at most one animation frame)
     await page.evaluate(() => {
       return new Promise((resolve) => {
-        requestAnimationFrame(() => {
-          requestAnimationFrame(resolve);
-        });
+        requestAnimationFrame(resolve);
       });
     });
 
