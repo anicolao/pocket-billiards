@@ -42,7 +42,8 @@ jobs:
           echo "Checking for new or modified screenshots..."
           
           # Stage all screenshot files to track new ones
-          find tests/e2e -type f \( -name '*.png' -o -name '*.jpg' -o -name '*.jpeg' \) | xargs -r git add -N 2>/dev/null || true
+          # Using find with -exec to handle the case where no files exist
+          find tests/e2e -type f \( -name '*.png' -o -name '*.jpg' -o -name '*.jpeg' \) -exec git add -N {} + 2>/dev/null || true
           
           # Check for any new or modified screenshot files
           CHANGED_SCREENSHOTS=$(git diff --name-only tests/e2e/ | grep -E '\.(png|jpg|jpeg)$' || true)
@@ -53,7 +54,11 @@ jobs:
             echo ""
             echo "E2E tests should not generate new screenshots."
             echo "All screenshots should match existing baselines."
-            echo "If you intentionally changed rendering, update the baselines in a separate commit."
+            echo ""
+            echo "If you intentionally changed rendering:"
+            echo "  1. Review the visual changes carefully"
+            echo "  2. Update baselines by committing the new screenshots"
+            echo "  3. Document the reason in your commit message"
             exit 1
           else
             echo "✅ No new screenshots generated - all screenshots match baselines"
