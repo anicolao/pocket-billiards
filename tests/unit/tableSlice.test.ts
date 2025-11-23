@@ -15,7 +15,8 @@ describe('tableSlice', () => {
     
     // Verify pocket positions
     const { pockets } = state.dimensions;
-    const cornerInset = 25 * 0.5; // pocketRadius * 0.5
+    const cornerInset = 25 * 0.3; // pocketRadius * 0.3
+    const sideInset = 25 * 0.5; // pocketRadius * 0.5
     
     // Corner pockets
     expect(pockets[0]).toEqual({ x: -cornerInset, y: -cornerInset, radius: 25 });
@@ -24,8 +25,8 @@ describe('tableSlice', () => {
     expect(pockets[3]).toEqual({ x: 1000 + cornerInset, y: 500 + cornerInset, radius: 25 });
     
     // Side pockets (on long edges - top and bottom)
-    expect(pockets[4]).toEqual({ x: 500, y: -cornerInset, radius: 25 }); // middle-top
-    expect(pockets[5]).toEqual({ x: 500, y: 500 + cornerInset, radius: 25 }); // middle-bottom
+    expect(pockets[4]).toEqual({ x: 500, y: -sideInset, radius: 25 }); // middle-top
+    expect(pockets[5]).toEqual({ x: 500, y: 500 + sideInset, radius: 25 }); // middle-bottom
   });
 
   it('should handle setDimensions', () => {
@@ -47,7 +48,7 @@ describe('tableSlice', () => {
     expect(state.dimensions.pockets).toHaveLength(6);
     
     // Verify pockets were recalculated
-    const cornerInset = 20 * 0.5;
+    const cornerInset = 20 * 0.3;
     expect(state.dimensions.pockets[0]).toEqual({ x: -cornerInset, y: -cornerInset, radius: 20 });
     expect(state.dimensions.pockets[1]).toEqual({ x: 800 + cornerInset, y: -cornerInset, radius: 20 });
   });
@@ -100,9 +101,10 @@ describe('tableSlice', () => {
     expect(state.dimensions.pockets).toHaveLength(6);
     
     // Verify pockets were recalculated for new dimensions
-    const cornerInset = 30 * 0.5;
+    const cornerInset = 30 * 0.3;
+    const sideInset = 30 * 0.5;
     expect(state.dimensions.pockets[0].x).toBe(-cornerInset);
     expect(state.dimensions.pockets[4].x).toBe(600); // middle of 1200 (width)
-    expect(state.dimensions.pockets[4].y).toBe(-cornerInset); // on top edge
+    expect(state.dimensions.pockets[4].y).toBe(-sideInset); // on top edge
   });
 });
