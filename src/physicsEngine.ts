@@ -134,6 +134,26 @@ class PhysicsEngine {
   isRunning(): boolean {
     return store.getState().physics.isRunning;
   }
+
+  /**
+   * Set auto-run mode
+   * When disabled, physics must be stepped manually
+   */
+  setAutoRun(enabled: boolean): void {
+    this.autoRun = enabled;
+    if (!enabled && this.animationFrameId !== null) {
+      // Stop any running animation loop
+      cancelAnimationFrame(this.animationFrameId);
+      this.animationFrameId = null;
+    }
+  }
+
+  /**
+   * Get current auto-run mode
+   */
+  getAutoRun(): boolean {
+    return this.autoRun;
+  }
 }
 
 // Export singleton instance for normal application use

@@ -86,6 +86,12 @@ test.describe('Rendering: Cue Ball Pocketing', () => {
       maxDiffPixels: 0,
     });
 
+    // Disable auto-run mode to prevent physics from running automatically
+    // This allows us to manually control physics stepping for screenshot capture
+    await page.evaluate(() => {
+      window.physicsEngine.setAutoRun(false);
+    });
+
     // Dispatch a shot action to shoot the cue ball toward top-left pocket
     // The cue ball is now at (150, 150) and the top-left pocket is at (0, 0)
     // We calculate the velocity to aim toward the pocket
@@ -124,7 +130,16 @@ test.describe('Rendering: Cue Ball Pocketing', () => {
       });
     });
 
-    // Take screenshot after shot is initiated
+    // Verify ball state after shot action
+    const ballAfterShot = await getBallState(page, 0);
+    expect(ballAfterShot).toBeDefined();
+    expect(ballAfterShot.active).toBe(true);
+    expect(ballAfterShot.position.x).toBeCloseTo(150, 0);
+    expect(ballAfterShot.position.y).toBeCloseTo(150, 0);
+    expect(ballAfterShot.velocity.x).not.toBe(0);
+    expect(ballAfterShot.velocity.y).not.toBe(0);
+
+    // Take screenshot after shot is initiated (ball should still be visible at original position)
     await expect(page).toHaveScreenshot('0002-ball-velocity-set-after-shot.png', {
       maxDiffPixels: 0,
     });
