@@ -9,6 +9,8 @@ build/
 coverage/
 playwright-report/
 test-results/
+*-test-output.txt
+startup-summary.md
 
 # Logs
 *.log
