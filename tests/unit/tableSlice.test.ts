@@ -15,14 +15,14 @@ describe('tableSlice', () => {
     
     // Verify pocket positions
     const { pockets } = state.dimensions;
-    const cornerInset = 25 * 0.3; // pocketRadius * 0.3
-    const sideInset = 25 * 0.5; // pocketRadius * 0.5
+    const cornerInset = 0; // pockets at corners
+    const sideInset = 25 * 0.607; // pocketRadius * 0.607
     
-    // Corner pockets
-    expect(pockets[0]).toEqual({ x: -cornerInset, y: -cornerInset, radius: 25 });
-    expect(pockets[1]).toEqual({ x: 1000 + cornerInset, y: -cornerInset, radius: 25 });
-    expect(pockets[2]).toEqual({ x: -cornerInset, y: 500 + cornerInset, radius: 25 });
-    expect(pockets[3]).toEqual({ x: 1000 + cornerInset, y: 500 + cornerInset, radius: 25 });
+    // Corner pockets - at corners
+    expect(pockets[0]).toEqual({ x: cornerInset, y: cornerInset, radius: 25 });
+    expect(pockets[1]).toEqual({ x: 1000 - cornerInset, y: cornerInset, radius: 25 });
+    expect(pockets[2]).toEqual({ x: cornerInset, y: 500 - cornerInset, radius: 25 });
+    expect(pockets[3]).toEqual({ x: 1000 - cornerInset, y: 500 - cornerInset, radius: 25 });
     
     // Side pockets (on long edges - top and bottom)
     expect(pockets[4]).toEqual({ x: 500, y: -sideInset, radius: 25 }); // middle-top
@@ -48,9 +48,9 @@ describe('tableSlice', () => {
     expect(state.dimensions.pockets).toHaveLength(6);
     
     // Verify pockets were recalculated
-    const cornerInset = 20 * 0.3;
-    expect(state.dimensions.pockets[0]).toEqual({ x: -cornerInset, y: -cornerInset, radius: 20 });
-    expect(state.dimensions.pockets[1]).toEqual({ x: 800 + cornerInset, y: -cornerInset, radius: 20 });
+    const cornerInset = 0;
+    expect(state.dimensions.pockets[0]).toEqual({ x: cornerInset, y: cornerInset, radius: 20 });
+    expect(state.dimensions.pockets[1]).toEqual({ x: 800 - cornerInset, y: cornerInset, radius: 20 });
   });
 
   it('should not mutate the previous state', () => {
@@ -101,9 +101,9 @@ describe('tableSlice', () => {
     expect(state.dimensions.pockets).toHaveLength(6);
     
     // Verify pockets were recalculated for new dimensions
-    const cornerInset = 30 * 0.3;
-    const sideInset = 30 * 0.5;
-    expect(state.dimensions.pockets[0].x).toBe(-cornerInset);
+    const cornerInset = 0;
+    const sideInset = 30 * 0.607;
+    expect(state.dimensions.pockets[0].x).toBe(cornerInset);
     expect(state.dimensions.pockets[4].x).toBe(600); // middle of 1200 (width)
     expect(state.dimensions.pockets[4].y).toBe(-sideInset); // on top edge
   });
