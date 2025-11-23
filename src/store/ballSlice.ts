@@ -78,6 +78,15 @@ const ballSlice = createSlice({
       const { tableWidth, tableHeight } = action.payload;
       state.balls = createInitialBalls(tableWidth, tableHeight);
     },
+    shot: (
+      state,
+      action: PayloadAction<{ ballId: number; velocity: { x: number; y: number } }>
+    ) => {
+      const ball = state.balls.find((b) => b.id === action.payload.ballId);
+      if (ball) {
+        ball.velocity = action.payload.velocity;
+      }
+    },
   },
 });
 
@@ -86,6 +95,7 @@ export const {
   setBallVelocity,
   setBallActive,
   initializeBalls,
+  shot,
 } = ballSlice.actions;
 
 export default ballSlice.reducer;
