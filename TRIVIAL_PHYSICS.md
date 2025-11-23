@@ -9,11 +9,11 @@ The trivial physics system handles:
 - Friction-based deceleration until balls stop
 - Fixed timestep simulation for consistent behavior
 - Integration with Redux state management
+- Ball-to-rail collisions
+- Ball-to-pocket detection (pocketing balls)
 
 **Out of Scope for Trivial Physics:**
 - Ball-to-ball collisions (future enhancement)
-- Ball-to-rail collisions (future enhancement)
-- Ball-to-pocket detection (future enhancement)
 - Spin mechanics (future enhancement)
 - Advanced friction models (rolling vs. sliding)
 
@@ -516,21 +516,11 @@ This trivial physics system provides the foundation for more advanced features:
 
 ### Collision Detection (Next Phase)
 
-**Ball-to-Rail Collisions:**
-- Detect when ball position crosses rail boundary
-- Reflect velocity vector based on collision normal
-- Apply energy loss coefficient (inelastic collision)
-
 **Ball-to-Ball Collisions:**
 - Detect overlapping ball boundaries
 - Calculate collision normal and impulse
 - Transfer momentum between balls
 - Handle multiple simultaneous collisions
-
-**Ball-to-Pocket Detection:**
-- Detect when ball center enters pocket radius
-- Set `ball.active = false`
-- Remove from physics simulation
 
 ### Advanced Physics
 
