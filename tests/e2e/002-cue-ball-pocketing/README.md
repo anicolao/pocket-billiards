@@ -18,10 +18,11 @@ This test validates that:
 ## Test Flow
 
 1. **Initial State**: Cue ball at head spot (250, 250)
-2. **Shot Action**: Dispatch Redux action to shoot ball toward top-left pocket (0, 0)
-3. **Physics Simulation**: Manually step through physics frames
-4. **Screenshot Capture**: Capture screenshots at regular intervals showing ball movement
-5. **Final Validation**: Verify ball is pocketed (inactive) with zero velocity
+2. **Reposition Ball**: Move ball to (150, 150) to ensure it can reach the pocket
+3. **Shot Action**: Dispatch Redux action to shoot ball toward top-left pocket (0, 0)
+4. **Physics Simulation**: Manually step through physics frames
+5. **Screenshot Capture**: Capture screenshots at regular intervals showing ball movement
+6. **Final Validation**: Verify ball is pocketed (inactive) with zero velocity
 
 ## Manual Physics Stepping
 
@@ -37,11 +38,14 @@ Instead of using `requestAnimationFrame` for automatic simulation, the test:
 
 The cue ball should:
 1. Start at the head spot (250, 250)
-2. Begin moving toward the top-left corner pocket after the shot
-3. Travel in a straight line (no collisions with rails in this test)
-4. Enter the pocket when its center is within the pocket radius
-5. Become inactive (pocketed) with zero velocity
-6. Complete simulation in fewer than 1000 physics steps
+2. Be repositioned to (150, 150) to ensure it can reach the pocket with current friction
+3. Begin moving toward the top-left corner pocket after the shot
+4. Travel in a straight line (no collisions with rails in this test)
+5. Enter the pocket when its center is within the pocket radius
+6. Become inactive (pocketed) with zero velocity
+7. Complete simulation in fewer than 1000 physics steps
+
+**Note**: The repositioning step is necessary because with the current friction coefficient (2.0) and max velocity (500), the ball can only travel approximately 250 table units before stopping. The default head spot position (250, 250) is about 354 units from the top-left pocket (0, 0), which is too far to reach.
 
 ## Screenshots
 
@@ -52,8 +56,13 @@ The test captures screenshots at key moments:
 
 Shows the cue ball at the head spot before any action is taken.
 
+### Repositioned Ball
+![Ball repositioned closer to pocket](pocketing.spec.ts-snapshots/0001-ball-repositioned-closer-to-pocket-chromium-linux.png)
+
+Shows the cue ball after being repositioned to (150, 150) to ensure it can reach the pocket.
+
 ### After Shot Action
-![Ball velocity set after shot](pocketing.spec.ts-snapshots/0001-ball-velocity-set-after-shot-chromium-linux.png)
+![Ball velocity set after shot](pocketing.spec.ts-snapshots/0002-ball-velocity-set-after-shot-chromium-linux.png)
 
 Shows the state immediately after the `shot` action is dispatched. The ball should still be at approximately the same position but will have velocity set.
 

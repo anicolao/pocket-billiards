@@ -65,8 +65,30 @@ test.describe('Rendering: Cue Ball Pocketing', () => {
     expect(initialBall).toBeDefined();
     expect(initialBall.active).toBe(true);
 
+    // Reposition the ball closer to the pocket for testing
+    // The default position (250, 250) is too far to reach the pocket at (0, 0)
+    // with current friction. Move it to (150, 150) to match the unit test.
+    await page.evaluate(() => {
+      window.store.dispatch({
+        type: 'balls/setBallPosition',
+        payload: { id: 0, position: { x: 150, y: 150 } }
+      });
+    });
+
+    // Wait for rendering to update after position change
+    await page.evaluate(() => {
+      return new Promise((resolve) => {
+        requestAnimationFrame(resolve);
+      });
+    });
+
+    // Take screenshot showing repositioned ball
+    await expect(page).toHaveScreenshot('0001-ball-repositioned-closer-to-pocket.png', {
+      maxDiffPixels: 0,
+    });
+
     // Dispatch a shot action to shoot the cue ball toward top-left pocket
-    // The cue ball is at (250, 250) and the top-left pocket is at (0, 0)
+    // The cue ball is now at (150, 150) and the top-left pocket is at (0, 0)
     // We calculate the velocity to aim toward the pocket
     await page.evaluate(() => {
       const state = window.store.getState();
@@ -104,13 +126,13 @@ test.describe('Rendering: Cue Ball Pocketing', () => {
     });
 
     // Take screenshot after shot is initiated
-    await expect(page).toHaveScreenshot('0001-ball-velocity-set-after-shot.png', {
+    await expect(page).toHaveScreenshot('0002-ball-velocity-set-after-shot.png', {
       maxDiffPixels: 0,
     });
 
     // Manually step through physics simulation, taking screenshots at intervals
     let stepCount = 0;
-    let screenshotCount = 2; // We've taken 2 screenshots so far
+    let screenshotCount = 3; // We've taken 3 screenshots so far
     const maxSteps = 10000; // Prevent infinite loops
     
     while (stepCount < maxSteps) {
