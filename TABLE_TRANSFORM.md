@@ -174,44 +174,102 @@ screenY = translationY + (rotatedY × scale)
 
 ## Input Transformation (Screen to Model)
 
-Touch and pointer events occur in screen coordinates and must be transformed to table coordinates for game logic.
+Touch and pointer events occur in screen coordinates and must be transformed to table coordinates for game logic. This inverse transformation is essential for handling user interactions like aiming shots, placing balls, or detecting clicks on table elements.
+
+### Getting Input Coordinates
+
+Input events provide coordinates relative to the canvas element:
+
+```typescript
+// Touch events
+canvas.addEventListener('touchstart', (event) => {
+  const touch = event.touches[0]
+  const rect = canvas.getBoundingClientRect()
+  const screenX = touch.clientX - rect.left
+  const screenY = touch.clientY - rect.top
+  const tablePos = screenToTable(screenX, screenY)
+  // Use tablePos.x and tablePos.y for game logic
+})
+
+// Mouse/pointer events
+canvas.addEventListener('click', (event) => {
+  const rect = canvas.getBoundingClientRect()
+  const screenX = event.clientX - rect.left
+  const screenY = event.clientY - rect.top
+  const tablePos = screenToTable(screenX, screenY)
+  // Use tablePos.x and tablePos.y for game logic
+})
+```
 
 ### Inverse Transform Process
+
+The inverse transformation reverses the rendering transformation to convert screen coordinates back to table coordinates:
 
 1. **Un-translate**: Subtract the centering offset
 2. **Un-rotate**: Apply inverse rotation (0° or -90°)
 3. **Un-scale**: Divide by scale factor
 
 **Landscape (no rotation):**
-```
-tableX = (screenX - translationX) / scale
-tableY = (screenY - translationY) / scale
+```typescript
+function screenToTableLandscape(screenX: number, screenY: number): { x: number, y: number } {
+  const tableX = (screenX - translationX) / scale
+  const tableY = (screenY - translationY) / scale
+  return { x: tableX, y: tableY }
+}
 ```
 
 **Portrait (90° CCW inverse rotation):**
+```typescript
+function screenToTablePortrait(screenX: number, screenY: number): { x: number, y: number } {
+  // Remove screen translation
+  const adjustedX = screenX - translationX
+  const adjustedY = screenY - translationY
+  
+  // Undo scale
+  const scaledX = adjustedX / scale
+  const scaledY = adjustedY / scale
+  
+  // Undo rotation (reverse of: rotatedX = renderY, rotatedY = totalTableWidth - renderX)
+  const renderY = scaledX
+  const renderX = totalTableWidth - scaledY
+  
+  // Convert from renderable area coordinates to playing surface coordinates
+  const tableX = renderX - railWidth
+  const tableY = renderY - railWidth
+  
+  return { x: tableX, y: tableY }
+}
 ```
-// Remove screen translation
-adjustedX = screenX - translationX
-adjustedY = screenY - translationY
 
-// Undo scale
-scaledX = adjustedX / scale
-scaledY = adjustedY / scale
-
-// Undo rotation (reverse of: rotatedX = renderY, rotatedY = totalTableWidth - renderX)
-renderY = scaledX
-renderX = totalTableWidth - scaledY
-
-// Convert from renderable area coordinates to playing surface coordinates
-tableX = renderX - railWidth
-tableY = renderY - railWidth
+**Combined function:**
+```typescript
+function screenToTable(screenX: number, screenY: number): { x: number, y: number } {
+  const isPortrait = window.innerWidth < window.innerHeight
+  return isPortrait 
+    ? screenToTablePortrait(screenX, screenY)
+    : screenToTableLandscape(screenX, screenY)
+}
 ```
 
 ### Bounds Checking
 
 After transformation, validate that input coordinates fall within valid table bounds:
-- **Playing surface**: 0 ≤ tableX ≤ 1000, 0 ≤ tableY ≤ 500
-- **Including rails**: -railWidth ≤ tableX ≤ 1000 + railWidth, -railWidth ≤ tableY ≤ 500 + railWidth
+
+```typescript
+function isOnPlayingSurface(tableX: number, tableY: number): boolean {
+  return tableX >= 0 && tableX <= 1000 && tableY >= 0 && tableY <= 500
+}
+
+function isOnTable(tableX: number, tableY: number): boolean {
+  // Includes rails
+  return tableX >= -railWidth && tableX <= 1000 + railWidth &&
+         tableY >= -railWidth && tableY <= 500 + railWidth
+}
+```
+
+**Validation strategies:**
+- **Playing surface**: 0 ≤ tableX ≤ 1000, 0 ≤ tableY ≤ 500 (for ball placement, shot aiming)
+- **Including rails**: -railWidth ≤ tableX ≤ 1000 + railWidth, -railWidth ≤ tableY ≤ 500 + railWidth (for UI interactions)
 
 Coordinates outside valid bounds should be clamped or rejected based on use case (e.g., ball placement vs. UI interaction).
 
