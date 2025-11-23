@@ -45,7 +45,7 @@ The cue ball should:
 6. Become inactive (pocketed) with zero velocity
 7. Complete simulation in fewer than 1000 physics steps
 
-**Note**: The repositioning step is necessary because with the current friction coefficient (2.0) and max velocity (500), the ball can only travel approximately 250 table units before stopping. The default head spot position (250, 250) is about 354 units from the top-left pocket (0, 0), which is too far to reach.
+**Note**: The repositioning step is necessary because with the current friction coefficient (2.0) and max velocity (500), the ball can only travel approximately 250 table units before stopping. The default head spot position (250, 250) is about 353.6 units from the top-left pocket (0, 0), which is too far to reach.
 
 ## Screenshots
 
