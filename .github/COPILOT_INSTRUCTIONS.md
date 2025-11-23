@@ -18,11 +18,10 @@ Tests must wait for specific conditions or events:
 **For Playwright E2E tests:**
 ```typescript
 // Wait for next animation frame (rendering complete)
+// IMPORTANT: Wait for AT MOST ONE animation frame when taking screenshots
 await page.evaluate(() => {
   return new Promise((resolve) => {
-    requestAnimationFrame(() => {
-      requestAnimationFrame(resolve);
-    });
+    requestAnimationFrame(resolve);
   });
 });
 
@@ -33,6 +32,11 @@ await element.waitFor({ state: 'attached' });
 // Wait for network idle
 await page.waitForLoadState('networkidle');
 ```
+
+**Screenshot Timing:**
+- **ALWAYS wait for AT MOST ONE animation frame** before taking screenshots
+- This ensures rendering is complete without introducing unnecessary delays
+- Never chain multiple requestAnimationFrame calls for screenshots
 
 **For unit tests:**
 - Redux actions are **ALWAYS SYNCHRONOUS** - no waiting needed
