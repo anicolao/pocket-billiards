@@ -1,0 +1,36 @@
+{
+  "name": "pocket-billiards",
+  "version": "0.0.1",
+  "description": "An 8-ball pool game designed for large touchscreen displays. This is a proof-of-concept implementation built with HTML5 Canvas.",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc && vite build",
+    "preview": "vite preview",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "test:coverage": "vitest run --coverage",
+    "test:e2e": "playwright test",
+    "test:e2e:ui": "playwright test --ui"
+  },
+  "keywords": [
+    "billiards",
+    "pool",
+    "8-ball",
+    "touchscreen",
+    "canvas"
+  ],
+  "author": "",
+  "license": "GPL-3.0",
+  "devDependencies": {
+    "@playwright/test": "^1.56.1",
+    "@reduxjs/toolkit": "^2.10.1",
+    "@vitejs/plugin-react": "^5.1.1",
+    "@vitest/coverage-v8": "^4.0.13",
+    "@vitest/ui": "^4.0.13",
+    "playwright": "^1.56.1",
+    "typescript": "^5.9.3",
+    "vite": "^7.2.4",
+    "vitest": "^4.0.13"
+  }
+}
