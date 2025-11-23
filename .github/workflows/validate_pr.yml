@@ -1,0 +1,68 @@
+name: Validate PR
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened]
+
+permissions:
+  contents: read
+  pull-requests: write
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run unit tests with coverage
+        run: npm run test:coverage
+
+      - name: Check Redux code coverage
+        run: node .github/scripts/check-redux-coverage.cjs
+
+      - name: Install Playwright browsers
+        run: npx playwright install --with-deps chromium
+
+      - name: Run e2e tests
+        run: npm run test:e2e
+
+      - name: Check for new screenshots
+        run: |
+          echo "Checking for new or modified screenshots..."
+          
+          # Stage all snapshot directories to track new files
+          find tests/e2e -type d -name "*-snapshots" -exec git add -N {} \; 2>/dev/null || true
+          
+          # Check for any new or modified screenshot files
+          CHANGED_SCREENSHOTS=$(git diff --name-only tests/e2e/ | grep -E '\.(png|jpg|jpeg)$' || true)
+          
+          if [ -n "$CHANGED_SCREENSHOTS" ]; then
+            echo "❌ New or modified screenshots detected:"
+            echo "$CHANGED_SCREENSHOTS"
+            echo ""
+            echo "E2E tests should not generate new screenshots."
+            echo "All screenshots should match existing baselines."
+            echo "If you intentionally changed rendering, update the baselines in a separate commit."
+            exit 1
+          else
+            echo "✅ No new screenshots generated - all screenshots match baselines"
+          fi
+
+      - name: Validation Summary
+        if: success()
+        run: |
+          echo "✅ PR validation passed:"
+          echo "  - Unit tests pass with full Redux coverage"
+          echo "  - E2E tests pass"
+          echo "  - No new screenshots generated"
