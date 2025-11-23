@@ -35,7 +35,7 @@ for (const [file, data] of Object.entries(coverage)) {
     const stmtCovered = Object.values(statements).filter(v => v > 0).length;
     const stmtPct = stmtTotal > 0 ? (stmtCovered / stmtTotal) * 100 : 100;
     
-    const flatBranches = Object.values(branches).flat();
+    const flatBranches = [].concat(...Object.values(branches));
     const branchTotal = flatBranches.length;
     const branchCovered = flatBranches.filter(v => v > 0).length;
     const branchPct = branchTotal > 0 ? (branchCovered / branchTotal) * 100 : 100;
