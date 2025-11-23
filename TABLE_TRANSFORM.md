@@ -87,8 +87,9 @@ The complete transformation from table space to screen space consists of:
 The scale factor must fit the table (including rails) within the screen with appropriate padding:
 
 ```
-totalTableWidth = tableWidth + (2 × railWidth)     // 1000 + 80 = 1080
-totalTableHeight = tableHeight + (2 × railWidth)   // 500 + 80 = 580
+// Assuming railWidth = 40 (typical value)
+totalTableWidth = tableWidth + (2 × railWidth)     // 1000 + (2 × 40) = 1080
+totalTableHeight = tableHeight + (2 × railWidth)   // 500 + (2 × 40) = 580
 ```
 
 **For Landscape Orientation (no rotation):**
@@ -110,8 +111,8 @@ scale = min(scaleX, scaleY)
 
 **Properties:**
 - Single uniform scale factor (preserves aspect ratio)
-- Always ≤ 1.0 (table never scaled larger than actual size in model units)
-- May be > 1.0 on very large displays (table can be magnified)
+- Typically < 1.0 (table scaled down to fit screen)
+- May be > 1.0 on very large displays (table magnified beyond model size)
 
 ### Translation Calculation
 
@@ -327,7 +328,8 @@ No transformation state needs to be stored in game state—it's computed on dema
 
 **Given:**
 - Screen: 1920×1080 pixels
-- Table: 1000×500 + 80 rail = 1080×580 total
+- Table: 1000×500 playing surface
+- Rail width: 40 units per side → Total: 1080×580 (including rails)
 - Padding: 40 pixels
 
 **Calculations:**
@@ -346,7 +348,8 @@ No transformation state needs to be stored in game state—it's computed on dema
 
 **Given:**
 - Screen: 1080×1920 pixels (portrait)
-- Table: 1000×500 + 80 rail = 1080×580 total
+- Table: 1000×500 playing surface
+- Rail width: 40 units per side → Total: 1080×580 (including rails)
 - Padding: 40 pixels
 
 **Calculations:**
@@ -366,7 +369,8 @@ No transformation state needs to be stored in game state—it's computed on dema
 
 **Given:**
 - Screen: 3840×2160 pixels
-- Table: 1000×500 + 80 rail = 1080×580 total
+- Table: 1000×500 playing surface
+- Rail width: 40 units per side → Total: 1080×580 (including rails)
 - Padding: 40 pixels
 
 **Calculations:**
@@ -385,7 +389,8 @@ No transformation state needs to be stored in game state—it's computed on dema
 
 **Given:**
 - Screen: 1200×1200 pixels (square)
-- Table: 1000×500 + 80 rail = 1080×580 total
+- Table: 1000×500 playing surface
+- Rail width: 40 units per side → Total: 1080×580 (including rails)
 - Padding: 40 pixels
 
 **Calculations:**
