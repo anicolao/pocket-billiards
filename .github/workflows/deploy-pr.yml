@@ -1,4 +1,4 @@
-name: Deploy PR to GitHub Pages
+name: Build PR Preview
 
 on:
   pull_request:
@@ -6,16 +6,11 @@ on:
 
 permissions:
   contents: read
-  pages: write
-  id-token: write
   pull-requests: write
 
 jobs:
-  build-and-deploy:
+  build-preview:
     runs-on: ubuntu-latest
-    environment:
-      name: github-pages-pr-${{ github.event.number }}
-      url: ${{ steps.deployment.outputs.page_url }}
     
     steps:
       - name: Checkout
@@ -37,21 +32,19 @@ jobs:
         run: |
           echo "<script>console.log('PR #${{ github.event.number }}')</script>" >> dist/index.html
 
-      - name: Upload artifact
-        uses: actions/upload-pages-artifact@v3
+      - name: Upload build artifact
+        uses: actions/upload-artifact@v4
         with:
+          name: pr-${{ github.event.number }}-build
           path: ./dist
+          retention-days: 30
 
-      - name: Deploy to GitHub Pages
-        id: deployment
-        uses: actions/deploy-pages@v4
-
-      - name: Comment PR with deployment URL
+      - name: Comment PR with build info
         uses: actions/github-script@v7
         with:
           script: |
-            const url = '${{ steps.deployment.outputs.page_url }}';
-            const comment = `🚀 **Preview Deployment**\n\nYour changes have been deployed to GitHub Pages:\n\n${url}\n\n_Updated on ${new Date().toUTCString()}_`;
+            const runUrl = `https://github.com/${context.repo.owner}/${context.repo.repo}/actions/runs/${context.runId}`;
+            const comment = `🚀 **Preview Build Ready**\n\nYour changes have been built successfully!\n\n**To preview:**\n1. Download the build artifact from [this workflow run](${runUrl})\n2. Extract the zip file\n3. Open \`index.html\` in your browser\n\n**Or use a local server:**\n\`\`\`bash\nnpx serve dist\n\`\`\`\n\n_Build completed on ${new Date().toUTCString()}_\n\n---\n\n**Note:** For live preview deployments, consider setting up:\n- GitHub Pages (Settings → Pages → Source: GitHub Actions)\n- Or use [Netlify](https://www.netlify.com/), [Vercel](https://vercel.com/), or [Cloudflare Pages](https://pages.cloudflare.com/)`;
             
             // Find existing comment
             const { data: comments } = await github.rest.issues.listComments({
@@ -62,7 +55,7 @@ jobs:
             
             const botComment = comments.find(comment => 
               comment.user.type === 'Bot' && 
-              comment.body.includes('Preview Deployment')
+              comment.body.includes('Preview Build Ready')
             );
             
             if (botComment) {
