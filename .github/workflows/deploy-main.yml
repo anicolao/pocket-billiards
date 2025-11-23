@@ -50,7 +50,7 @@ jobs:
         run: |
           echo "## Unit Test Results" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
-          
+
           if [ -f unit-test-output.txt ]; then
             echo '```' >> $GITHUB_STEP_SUMMARY
             tail -n 20 unit-test-output.txt >> $GITHUB_STEP_SUMMARY
@@ -58,7 +58,7 @@ jobs:
           else
             echo "❌ Unit test output not found" >> $GITHUB_STEP_SUMMARY
           fi
-          
+
           if [ "${{ steps.unit-tests.outputs.exit_code }}" = "0" ]; then
             echo "" >> $GITHUB_STEP_SUMMARY
             echo "✅ **All unit tests passed!**" >> $GITHUB_STEP_SUMMARY
@@ -66,11 +66,11 @@ jobs:
             echo "" >> $GITHUB_STEP_SUMMARY
             echo "❌ **Unit tests failed!**" >> $GITHUB_STEP_SUMMARY
           fi
-          
+
           echo "" >> $GITHUB_STEP_SUMMARY
           echo "## Code Coverage" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
-          
+
           if [ -f unit-test-coverage-output.txt ]; then
             echo '```' >> $GITHUB_STEP_SUMMARY
             # Extract coverage table from vitest output
@@ -105,7 +105,7 @@ jobs:
         run: |
           echo "## E2E Test Results" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
-          
+
           if [ -f e2e-test-output.txt ]; then
             echo '```' >> $GITHUB_STEP_SUMMARY
             tail -n 30 e2e-test-output.txt >> $GITHUB_STEP_SUMMARY
@@ -113,7 +113,7 @@ jobs:
           else
             echo "❌ E2E test output not found" >> $GITHUB_STEP_SUMMARY
           fi
-          
+
           if [ "${{ steps.e2e-tests.outputs.exit_code }}" = "0" ]; then
             echo "" >> $GITHUB_STEP_SUMMARY
             echo "✅ **All E2E tests passed!**" >> $GITHUB_STEP_SUMMARY
@@ -142,20 +142,20 @@ jobs:
         run: |
           cat > test-status-summary.md << 'EOF'
           # Test Status from Main Branch
-          
+
           ## Unit Tests
           $(if [ "${{ steps.unit-tests.outputs.exit_code }}" = "0" ]; then echo "✅ PASSED - All unit tests passing"; else echo "❌ FAILED"; fi)
-          
+
           ## Code Coverage
           $(if [ "${{ steps.unit-tests-coverage.outputs.exit_code }}" = "0" ]; then echo "✅ Coverage report generated"; else echo "❌ Coverage failed"; fi)
-          
+
           **Coverage Details**: See unit-test-coverage-output.txt for full coverage report
-          
-          ## E2E Tests  
+
+          ## E2E Tests
           $(if [ "${{ steps.e2e-tests.outputs.exit_code }}" = "0" ]; then echo "✅ PASSED - All E2E tests passing, no screenshot regeneration needed"; else echo "❌ FAILED"; fi)
-          
+
           ---
-          
+
           Generated from workflow run: ${{ github.run_id }}
           Commit: ${{ github.sha }}
           EOF
