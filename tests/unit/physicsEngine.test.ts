@@ -11,17 +11,24 @@ import {
 import { Ball } from '../../src/store/ballSlice';
 import { Pocket } from '../../src/store/tableSlice';
 
+// Helper function to create a test ball with default values
+const createTestBall = (overrides: Partial<Ball> = {}): Ball => ({
+  id: 0,
+  type: 'cue',
+  position: { x: 0, y: 0 },
+  velocity: { x: 0, y: 0 },
+  active: true,
+  radius: 11.25,
+  ...overrides,
+});
+
 describe('Physics Engine', () => {
   describe('updateBallPhysics', () => {
     it('should update ball position based on velocity', () => {
-      const ball: Ball = {
-        id: 0,
-        type: 'cue',
+      const ball = createTestBall({
         position: { x: 100, y: 200 },
         velocity: { x: 60, y: 0 },
-        active: true,
-        radius: 11.25,
-      };
+      });
 
       updateBallPhysics(ball, PHYSICS_TIMESTEP);
 
@@ -32,14 +39,9 @@ describe('Physics Engine', () => {
     });
 
     it('should apply friction to reduce velocity', () => {
-      const ball: Ball = {
-        id: 0,
-        type: 'cue',
-        position: { x: 0, y: 0 },
+      const ball = createTestBall({
         velocity: { x: 100, y: 0 },
-        active: true,
-        radius: 11.25,
-      };
+      });
 
       const initialVelocity = ball.velocity.x;
       updateBallPhysics(ball, PHYSICS_TIMESTEP);
@@ -52,14 +54,9 @@ describe('Physics Engine', () => {
     });
 
     it('should stop ball when velocity drops below threshold', () => {
-      const ball: Ball = {
-        id: 0,
-        type: 'cue',
-        position: { x: 0, y: 0 },
+      const ball = createTestBall({
         velocity: { x: 0.5, y: 0.5 },
-        active: true,
-        radius: 11.25,
-      };
+      });
 
       updateBallPhysics(ball, PHYSICS_TIMESTEP);
 
@@ -69,14 +66,9 @@ describe('Physics Engine', () => {
     });
 
     it('should preserve velocity direction while reducing magnitude', () => {
-      const ball: Ball = {
-        id: 0,
-        type: 'cue',
-        position: { x: 0, y: 0 },
+      const ball = createTestBall({
         velocity: { x: 100, y: 100 },
-        active: true,
-        radius: 11.25,
-      };
+      });
 
       const initialRatio = ball.velocity.y / ball.velocity.x;
       updateBallPhysics(ball, PHYSICS_TIMESTEP);
@@ -92,14 +84,10 @@ describe('Physics Engine', () => {
     const TABLE_HEIGHT = 500;
 
     it('should bounce ball off left rail', () => {
-      const ball: Ball = {
-        id: 0,
-        type: 'cue',
+      const ball = createTestBall({
         position: { x: 5, y: 250 },
         velocity: { x: -50, y: 0 },
-        active: true,
-        radius: 11.25,
-      };
+      });
 
       handleRailCollisions(ball, TABLE_WIDTH, TABLE_HEIGHT);
 
@@ -109,14 +97,10 @@ describe('Physics Engine', () => {
     });
 
     it('should bounce ball off right rail', () => {
-      const ball: Ball = {
-        id: 0,
-        type: 'cue',
+      const ball = createTestBall({
         position: { x: 995, y: 250 },
         velocity: { x: 50, y: 0 },
-        active: true,
-        radius: 11.25,
-      };
+      });
 
       handleRailCollisions(ball, TABLE_WIDTH, TABLE_HEIGHT);
 
@@ -126,14 +110,10 @@ describe('Physics Engine', () => {
     });
 
     it('should bounce ball off top rail', () => {
-      const ball: Ball = {
-        id: 0,
-        type: 'cue',
+      const ball = createTestBall({
         position: { x: 500, y: 5 },
         velocity: { x: 0, y: -50 },
-        active: true,
-        radius: 11.25,
-      };
+      });
 
       handleRailCollisions(ball, TABLE_WIDTH, TABLE_HEIGHT);
 
@@ -142,14 +122,10 @@ describe('Physics Engine', () => {
     });
 
     it('should bounce ball off bottom rail', () => {
-      const ball: Ball = {
-        id: 0,
-        type: 'cue',
+      const ball = createTestBall({
         position: { x: 500, y: 495 },
         velocity: { x: 0, y: 50 },
-        active: true,
-        radius: 11.25,
-      };
+      });
 
       handleRailCollisions(ball, TABLE_WIDTH, TABLE_HEIGHT);
 
@@ -158,14 +134,10 @@ describe('Physics Engine', () => {
     });
 
     it('should not modify ball that is not near rails', () => {
-      const ball: Ball = {
-        id: 0,
-        type: 'cue',
+      const ball = createTestBall({
         position: { x: 500, y: 250 },
         velocity: { x: 50, y: 50 },
-        active: true,
-        radius: 11.25,
-      };
+      });
 
       const originalPosition = { ...ball.position };
       const originalVelocity = { ...ball.velocity };
@@ -179,14 +151,9 @@ describe('Physics Engine', () => {
 
   describe('checkPocketCollision', () => {
     it('should detect collision when ball center is within pocket radius', () => {
-      const ball: Ball = {
-        id: 0,
-        type: 'cue',
+      const ball = createTestBall({
         position: { x: 10, y: 10 },
-        velocity: { x: 0, y: 0 },
-        active: true,
-        radius: 11.25,
-      };
+      });
 
       const pocket: Pocket = {
         x: 0,
@@ -199,14 +166,9 @@ describe('Physics Engine', () => {
     });
 
     it('should not detect collision when ball is outside pocket radius', () => {
-      const ball: Ball = {
-        id: 0,
-        type: 'cue',
+      const ball = createTestBall({
         position: { x: 100, y: 100 },
-        velocity: { x: 0, y: 0 },
-        active: true,
-        radius: 11.25,
-      };
+      });
 
       const pocket: Pocket = {
         x: 0,
@@ -219,14 +181,9 @@ describe('Physics Engine', () => {
     });
 
     it('should detect collision at exact pocket radius boundary', () => {
-      const ball: Ball = {
-        id: 0,
-        type: 'cue',
+      const ball = createTestBall({
         position: { x: 25, y: 0 },
-        velocity: { x: 0, y: 0 },
-        active: true,
-        radius: 11.25,
-      };
+      });
 
       const pocket: Pocket = {
         x: 0,
@@ -242,22 +199,15 @@ describe('Physics Engine', () => {
   describe('anyBallMoving', () => {
     it('should return true when at least one ball is moving', () => {
       const balls: Ball[] = [
-        {
+        createTestBall({
           id: 0,
-          type: 'cue',
-          position: { x: 0, y: 0 },
           velocity: { x: 10, y: 0 },
-          active: true,
-          radius: 11.25,
-        },
-        {
+        }),
+        createTestBall({
           id: 1,
           type: 'solid',
           position: { x: 100, y: 100 },
-          velocity: { x: 0, y: 0 },
-          active: true,
-          radius: 11.25,
-        },
+        }),
       ];
 
       expect(anyBallMoving(balls)).toBe(true);
@@ -265,22 +215,12 @@ describe('Physics Engine', () => {
 
     it('should return false when all balls are stopped', () => {
       const balls: Ball[] = [
-        {
-          id: 0,
-          type: 'cue',
-          position: { x: 0, y: 0 },
-          velocity: { x: 0, y: 0 },
-          active: true,
-          radius: 11.25,
-        },
-        {
+        createTestBall({ id: 0 }),
+        createTestBall({
           id: 1,
           type: 'solid',
           position: { x: 100, y: 100 },
-          velocity: { x: 0, y: 0 },
-          active: true,
-          radius: 11.25,
-        },
+        }),
       ];
 
       expect(anyBallMoving(balls)).toBe(false);
@@ -288,14 +228,10 @@ describe('Physics Engine', () => {
 
     it('should ignore inactive balls', () => {
       const balls: Ball[] = [
-        {
-          id: 0,
-          type: 'cue',
-          position: { x: 0, y: 0 },
+        createTestBall({
           velocity: { x: 10, y: 10 },
-          active: false, // Inactive
-          radius: 11.25,
-        },
+          active: false,
+        }),
       ];
 
       expect(anyBallMoving(balls)).toBe(false);
