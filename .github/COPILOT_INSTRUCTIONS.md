@@ -1,5 +1,45 @@
 # Copilot Agent Instructions
 
+## Environment Setup and Baseline
+
+### Copilot Setup Workflow
+
+Before starting any task, **review the output from the `copilot-setup-steps` workflow** to understand the current state of the codebase. This workflow runs automatically on every push and pull request.
+
+**Where to find it:**
+- GitHub Actions tab → "Copilot Runner Setup and Test" workflow
+- Check the "Summary" section for quick status
+- Download the `startup-summary` artifact for detailed environment information
+
+**Expected Clean State:**
+
+The workflow validates that the project is in a clean, working state:
+
+✅ **Unit Tests**: All 41 unit tests must pass (100% pass rate)
+✅ **Code Coverage**: Current baseline is ~48% coverage
+  - Store modules: 96.87% coverage
+  - Table Transform: 84.37% coverage  
+  - Renderers: 0% unit test coverage (validated through E2E tests instead)
+✅ **E2E Tests**: All 6 E2E tests must pass with zero screenshot differences
+✅ **Build**: Application must build successfully
+
+**What This Means:**
+
+- If the workflow shows all green checkmarks, the codebase is healthy
+- If unit tests fail, there's a regression in core logic
+- If E2E tests fail, there's a rendering regression or screenshot needs updating
+- If coverage drops, new code lacks tests or existing tests were removed
+
+**Important**: The 48% code coverage is the **current baseline**, not a target. Renderers are intentionally tested through E2E screenshot validation rather than unit tests, following the testing philosophy in E2E_TESTING.md.
+
+### When Starting a New Task
+
+1. **Check the workflow summary** to confirm the project state
+2. **Review any test failures** - do not assume the codebase is broken without cause
+3. **Understand the baseline** - if something is failing in the workflow, determine if it's related to your task
+4. **Do not introduce new test failures** - all changes must maintain the clean state
+5. **Screenshot regeneration** - E2E tests should NOT need screenshot updates unless you're intentionally changing rendering
+
 ## Testing Rules
 
 ### STRICT RULES for Test Timing
