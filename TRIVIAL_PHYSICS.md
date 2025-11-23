@@ -164,9 +164,10 @@ function updateBallPhysics(ball: Ball, dt: number): void {
   ball.position.x += ball.velocity.x * dt;
   ball.position.y += ball.velocity.y * dt;
   
-  // Apply friction deceleration (exponential decay)
-  // velocity(t) = velocity(0) * e^(-friction * t)
-  // Discrete approximation: velocity *= (1 - friction * dt)
+  // Apply friction deceleration
+  // Using Euler integration to approximate exponential decay
+  // For exact exponential: velocity(t) = velocity(0) * e^(-friction * t)
+  // Euler approximation for small dt: velocity *= (1 - friction * dt)
   const decayFactor = 1 - FRICTION_COEFFICIENT * dt;
   
   // Apply friction to both velocity components
@@ -220,6 +221,7 @@ interface ShotAction {
    case 'SHOT':
      const ball = state.balls.find(b => b.id === action.payload.ballId);
      if (ball) {
+       // Direct mutation works due to Redux Toolkit's Immer integration
        ball.velocity = action.payload.velocity;
      }
    ```
@@ -285,7 +287,7 @@ A ball's journey from shot to stop has distinct phases:
 - Friction coefficient: 2.0
 - Timestep: 1/60 second
 
-**Timeline:**
+**Timeline (approximate values for illustration):**
 
 | Time (s) | Velocity (units/s) | Position Change (units) | Total Distance |
 |----------|-------------------|------------------------|----------------|
@@ -410,8 +412,9 @@ if (!physicsState.isRunning) {
 - Reduces testing complexity
 
 **State Updates:**
-- Redux updates batch ball position/velocity changes
-- Renderer updates only when state changes
+- Redux Toolkit batches state updates within the same action
+- Ball positions/velocities update together in physics action
+- Renderer subscribes to state changes and updates when notified
 - No unnecessary redraws
 
 ### Scalability
