@@ -239,9 +239,10 @@ ctx.restore()
 **Portrait:**
 ```typescript
 ctx.save()
+// After 90° rotation, dimensions swap: table width becomes screen height
 // Position where the rotated table's renderable area top-left will be
 const offsetX = translationX
-const offsetY = translationY + totalTableWidth * scale
+const offsetY = translationY + totalTableWidth * scale  // Uses width because of rotation
 ctx.translate(offsetX, offsetY)
 ctx.rotate(Math.PI / 2)  // 90° clockwise
 ctx.scale(scale, scale)
@@ -263,8 +264,15 @@ ctx.beginPath()
 ctx.arc(250, 125, ballRadius, 0, Math.PI * 2)
 ctx.fill()
 
-// Example: Draw the rail area (before applying railWidth offset, or by using negative coords)
-// Rails would be drawn from (-railWidth, -railWidth) to (tableWidth + railWidth, tableHeight + railWidth)
+// Example: Draw the playing surface (green felt)
+ctx.fillStyle = '#0b6623'
+ctx.fillRect(0, 0, tableWidth, tableHeight)  // (0,0) to (1000, 500)
+
+// Example: Draw the rails (wood border around playing surface)
+ctx.fillStyle = '#4a3428'
+ctx.fillRect(-railWidth, -railWidth, 
+             tableWidth + 2 * railWidth, 
+             tableHeight + 2 * railWidth)
 ```
 
 The canvas transformation automatically converts these model coordinates to correct screen positions, accounting for scale, rotation, and translation.
