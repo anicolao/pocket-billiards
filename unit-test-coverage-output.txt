@@ -6,25 +6,26 @@
 [1m[46m RUN [49m[22m [36mv4.0.13 [39m[90m/home/runner/work/pocket-billiards/pocket-billiards[39m
       [2mCoverage enabled with [22m[33mv8[39m
 
- [32m✓[39m tests/unit/physicsEngine.test.ts [2m([22m[2m15 tests[22m[2m)[22m[32m 7[2mms[22m[39m
- [32m✓[39m tests/unit/ballSlice.test.ts [2m([22m[2m9 tests[22m[2m)[22m[32m 12[2mms[22m[39m
- [32m✓[39m tests/unit/tableTransform.test.ts [2m([22m[2m30 tests[22m[2m)[22m[32m 15[2mms[22m[39m
+ [32m✓[39m tests/unit/ballSlice.test.ts [2m([22m[2m9 tests[22m[2m)[22m[32m 13[2mms[22m[39m
+ [32m✓[39m tests/unit/tableTransform.test.ts [2m([22m[2m30 tests[22m[2m)[22m[32m 14[2mms[22m[39m
+ [32m✓[39m tests/unit/tableSlice.test.ts [2m([22m[2m4 tests[22m[2m)[22m[32m 12[2mms[22m[39m
+ [32m✓[39m tests/unit/physics.test.ts [2m([22m[2m3 tests[22m[2m)[22m[32m 8[2mms[22m[39m
+ [32m✓[39m tests/unit/physicsEngine.test.ts [2m([22m[2m15 tests[22m[2m)[22m[32m 9[2mms[22m[39m
  [32m✓[39m tests/unit/store.test.ts [2m([22m[2m1 test[22m[2m)[22m[32m 5[2mms[22m[39m
- [32m✓[39m tests/unit/physics.test.ts [2m([22m[2m3 tests[22m[2m)[22m[32m 9[2mms[22m[39m
- [32m✓[39m tests/unit/tableSlice.test.ts [2m([22m[2m4 tests[22m[2m)[22m[32m 7[2mms[22m[39m
 
 [2m Test Files [22m [1m[32m6 passed[39m[22m[90m (6)[39m
 [2m      Tests [22m [1m[32m62 passed[39m[22m[90m (62)[39m
-[2m   Start at [22m 08:30:43
-[2m   Duration [22m 1.90s[2m (transform 286ms, setup 80ms, collect 406ms, tests 56ms, environment 3.51s, prepare 264ms)[22m
+[2m   Start at [22m 14:55:53
+[2m   Duration [22m 2.27s[2m (transform 338ms, setup 84ms, collect 472ms, tests 62ms, environment 4.19s, prepare 282ms)[22m
 
 [34m % [39m[2mCoverage report from [22m[33mv8[39m
 -------------------|---------|----------|---------|---------|-------------------
 File               | % Stmts | % Branch | % Funcs | % Lines | Uncovered Line #s 
 -------------------|---------|----------|---------|---------|-------------------
-All files          |   57.33 |    60.49 |    57.4 |   57.53 |                   
- src               |     100 |       95 |     100 |     100 |                   
+All files          |   50.29 |       49 |   50.81 |   50.45 |                   
+ src               |   57.14 |    48.71 |      50 |   57.29 |                   
   physics.ts       |     100 |      100 |     100 |     100 |                   
+  physicsEngine.ts |       0 |        0 |       0 |       0 | 24-140            
   simulator.ts     |     100 |    85.71 |     100 |     100 | 39                
  src/rendering     |    40.7 |    45.28 |   45.16 |   41.32 |                   
   ballRenderer.ts  |       0 |        0 |       0 |       0 | 6-157             
