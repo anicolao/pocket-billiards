@@ -33,6 +33,7 @@ Each ball maintains the following physics-relevant state (from `ballSlice.ts`):
 
 ```typescript
 interface Ball {
+  id: number;                          // Ball number (0 = cue ball, 1-15 = object balls)
   position: { x: number; y: number };  // Table units
   velocity: { x: number; y: number };  // Table units per second
   radius: number;                      // Table units (11.25 for standard balls)
@@ -51,8 +52,10 @@ new_position = position + velocity * dt
 
 **Velocity Update (Friction Deceleration):**
 ```
-new_velocity = velocity - friction * velocity * dt
+new_velocity = velocity * (1 - friction * dt)
 ```
+
+This models exponential decay, where friction causes velocity to decrease proportionally over time.
 
 Where:
 - `dt` = timestep duration (1/60 second for 60 FPS)
@@ -73,8 +76,9 @@ const PHYSICS_FPS = 60;                    // Fixed 60 FPS timestep
 const PHYSICS_TIMESTEP = 1 / PHYSICS_FPS;  // 0.0167 seconds per step
 
 // Friction model
-const FRICTION_COEFFICIENT = 2.0;  // Table units/second² (deceleration rate)
+const FRICTION_COEFFICIENT = 2.0;  // 1/second (decay rate)
                                    // Higher = faster slowdown
+                                   // Models rolling resistance as exponential decay
 
 // Stopping threshold
 const VELOCITY_THRESHOLD = 1.0;    // Table units/second
@@ -153,24 +157,24 @@ function updateBallPhysics(ball: Ball, dt: number): void {
     return;
   }
   
-  // Apply friction deceleration
-  // Friction acts opposite to velocity direction
-  const frictionMagnitude = FRICTION_COEFFICIENT * dt;
-  const deceleration = Math.min(frictionMagnitude / speed, 1.0);  // Cap at 100% to prevent reversal
+  // Apply friction deceleration (exponential decay)
+  // velocity(t) = velocity(0) * e^(-friction * t)
+  // Discrete approximation: velocity *= (1 - friction * dt)
+  const decayFactor = 1 - FRICTION_COEFFICIENT * dt;
   
-  ball.velocity.x -= ball.velocity.x * deceleration;
-  ball.velocity.y -= ball.velocity.y * deceleration;
+  // Apply friction to both velocity components
+  ball.velocity.x *= decayFactor;
+  ball.velocity.y *= decayFactor;
   
-  // Update position
+  // Update position (Verlet integration)
   ball.position.x += ball.velocity.x * dt;
   ball.position.y += ball.velocity.y * dt;
 }
 ```
 
 **Key Features:**
-- **Proportional Friction**: Deceleration is proportional to speed (realistic sliding friction)
+- **Exponential Friction**: Velocity decays exponentially (realistic for rolling balls)
 - **Direction Preservation**: Friction only reduces magnitude, doesn't change direction
-- **No Reversal**: Capping ensures friction never accelerates ball backward
 - **Clean Stops**: Threshold prevents balls from drifting infinitesimally
 
 ## SHOT Action Flow
