@@ -24,7 +24,7 @@ export class TableRenderer {
   /**
    * Calculate the table position to center it on the canvas
    */
-  private calculateTableBounds(dimensions: TableDimensions): {
+  calculateTableBounds(dimensions: TableDimensions): {
     x: number;
     y: number;
     scale: number;
