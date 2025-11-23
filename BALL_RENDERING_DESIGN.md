@@ -34,10 +34,10 @@ Ball state is managed in Redux with the following structure:
 interface Ball {
   id: number;           // Ball number (0 = cue ball, 1-15 = object balls)
   type: BallType;       // 'cue', 'solid', 'stripe', 'eight'
-  position: { x: number; y: number };  // Position on playing surface
-  velocity: { x: number; y: number };  // Current velocity
+  position: { x: number; y: number };  // Position on playing surface (table units)
+  velocity: { x: number; y: number };  // Current velocity (table units/second)
   active: boolean;      // Whether ball is on table (false if pocketed)
-  radius: number;       // Ball radius
+  radius: number;       // Ball radius (table units)
 }
 
 type BallType = 'cue' | 'solid' | 'stripe' | 'eight';
@@ -77,7 +77,7 @@ Center Spot:
   y: height * 0.5 = 250
 ```
 
-**Initial Setup**: For MVP development and testing, a single cue ball is placed at the foot spot (750, 250).
+**Initial Setup**: For MVP development and testing, a single cue ball is placed at the head spot (250, 250).
 
 ### Rendering Strategy
 

@@ -5,10 +5,10 @@ export type BallType = 'cue' | 'solid' | 'stripe' | 'eight';
 export interface Ball {
   id: number;           // Ball number (0 = cue ball, 1-15 = object balls)
   type: BallType;       // Ball type
-  position: { x: number; y: number };  // Position on playing surface
-  velocity: { x: number; y: number };  // Current velocity
+  position: { x: number; y: number };  // Position on playing surface (table units)
+  velocity: { x: number; y: number };  // Current velocity (table units/second)
   active: boolean;      // Whether ball is on table (false if pocketed)
-  radius: number;       // Ball radius
+  radius: number;       // Ball radius (table units)
 }
 
 export interface BallState {
@@ -18,17 +18,17 @@ export interface BallState {
 // Standard ball radius for pool balls
 const BALL_RADIUS = 11.25; // Half of 2.25" diameter in table units
 
-// Foot spot is 3/4 down the table from the head
+// Head spot is 1/4 down the table (where cue ball starts for the break)
 const createInitialBalls = (tableWidth: number, tableHeight: number): Ball[] => {
-  const footSpotX = tableWidth * 0.75;
-  const footSpotY = tableHeight * 0.5;
+  const headSpotX = tableWidth * 0.25;
+  const headSpotY = tableHeight * 0.5;
 
-  // For MVP, just create a cue ball at the foot spot
+  // For MVP, just create a cue ball at the head spot
   return [
     {
       id: 0,
       type: 'cue',
-      position: { x: footSpotX, y: footSpotY },
+      position: { x: headSpotX, y: headSpotY },
       velocity: { x: 0, y: 0 },
       active: true,
       radius: BALL_RADIUS,
