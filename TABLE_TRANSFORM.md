@@ -94,7 +94,8 @@ The scale factor must fit the entire renderable table area (playing surface plus
 **Renderable Table Dimensions:**
 ```
 // The total area to render includes rails on all sides
-// Assuming railWidth = 40 (typical value, may be configured)
+// railWidth is typically 40 units (configurable in implementation)
+const railWidth = 40  // Standard value, may be adjusted
 totalTableWidth = tableWidth + (2 × railWidth)     // 1000 + (2 × 40) = 1080
 totalTableHeight = tableHeight + (2 × railWidth)   // 500 + (2 × 40) = 580
 ```
@@ -161,7 +162,8 @@ renderX = tableX + railWidth    // Offset from playing surface to renderable are
 renderY = tableY + railWidth
 
 // Apply 90° clockwise rotation around the renderable area origin
-// Rotation: (x, y) → (y, totalTableWidth - x)
+// Generic 90° CW rotation: (x, y) → (y, width - x)
+// Specific application: (renderX, renderY) → (renderY, totalTableWidth - renderX)
 rotatedX = renderY  
 rotatedY = totalTableWidth - renderX
 
