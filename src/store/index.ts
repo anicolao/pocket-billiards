@@ -1,11 +1,13 @@
 import { configureStore } from '@reduxjs/toolkit';
 import tableReducer from './tableSlice';
 import ballReducer from './ballSlice';
+import physicsReducer from './physicsSlice';
 
 export const store = configureStore({
   reducer: {
     table: tableReducer,
     balls: ballReducer,
+    physics: physicsReducer,
   },
 });
 
