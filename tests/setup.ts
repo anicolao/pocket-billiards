@@ -122,12 +122,17 @@ class DOMPointPolyfill {
   }
 }
 
-// Install polyfills
+// Install polyfills in the global scope for jsdom environment
+declare global {
+  // eslint-disable-next-line no-var
+  var DOMMatrix: typeof DOMMatrixPolyfill;
+  // eslint-disable-next-line no-var
+  var DOMPoint: typeof DOMPointPolyfill;
+}
+
 if (typeof global !== 'undefined') {
-  // @ts-ignore
-  global.DOMMatrix = DOMMatrixPolyfill;
-  // @ts-ignore
-  global.DOMPoint = DOMPointPolyfill;
+  global.DOMMatrix = DOMMatrixPolyfill as any;
+  global.DOMPoint = DOMPointPolyfill as any;
 }
 
 export {};
