@@ -26,12 +26,12 @@ const createPockets = (
   height: number,
   pocketRadius: number
 ): Pocket[] => {
-  // For ~1/4 of pocket area to be on the table:
-  // If we want 1/4 of the circular area inside, the pocket center should be
-  // offset such that about 1/4 of the circle overlaps the playing surface.
-  // For a rough approximation, we offset by about 0.5 * radius from the edge
-  // This puts the center halfway outside, giving roughly 1/4 area inside.
-  const cornerInset = pocketRadius * 0.5; // Center is 0.5*radius outside corner
+  // Side pockets: offset by 0.5 * radius to get ~1/4 area on table
+  const sideInset = pocketRadius * 0.5;
+  
+  // Corner pockets: need smaller offset since they're diagonal
+  // Using ~0.3 * radius to keep more area on the table
+  const cornerInset = pocketRadius * 0.3;
   
   // Note: width=1000, height=500, so width > height
   // Long edges are TOP and BOTTOM (along the width)
@@ -50,9 +50,9 @@ const createPockets = (
     
     // Two side pockets on the LONG edges (top and bottom)
     // Middle-top (on top long edge)
-    { x: width / 2, y: -cornerInset, radius: pocketRadius },
+    { x: width / 2, y: -sideInset, radius: pocketRadius },
     // Middle-bottom (on bottom long edge)
-    { x: width / 2, y: height + cornerInset, radius: pocketRadius },
+    { x: width / 2, y: height + sideInset, radius: pocketRadius },
   ];
 };
 
