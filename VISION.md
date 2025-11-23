@@ -207,7 +207,7 @@ We draw inspiration from:
 ## Sustainability & Maintenance
 
 ### Open Source Commitment
-This project is and will remain open source under GPL v3, ensuring:
+This project is and will remain open source under the GNU General Public License v3.0, ensuring:
 - Free access for all users
 - Community-driven development
 - Transparency in implementation
