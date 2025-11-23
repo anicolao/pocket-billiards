@@ -147,11 +147,17 @@ For each e2e test, the framework automatically generates a README file that serv
 
 1. **Test Overview**: Description of the game being replayed, including player names, game type, and outcome
 2. **Chronological Event Log**: Sequential listing of all significant moments
-3. **Screenshot Links**: For each moment, an embedded or linked screenshot image
+3. **Screenshot Links**: For each moment, an **embedded image link** showing the screenshot directly in the markdown (using `![alt text](path/to/screenshot.png)` syntax), not just file path references
 4. **Moment Descriptions**: Text description of what the verifier should observe in each screenshot
 5. **Expected State**: Description of the game state that should be visible (ball positions, scores, game phase)
 
-**Purpose**: Enable human reviewers to systematically verify that simulation output matches expectations without needing to run the test themselves or understand the code.
+**Purpose**: Enable human reviewers to systematically verify that simulation output matches expectations without needing to run the test themselves or understand the code. The README should be readable as a standalone document with all screenshots visible inline.
+
+**Implementation Requirements**:
+- Screenshots must be embedded using markdown image syntax: `![Description](relative/path/to/screenshot.png)`
+- Each screenshot should have a descriptive alt text explaining what it shows
+- Screenshots should be linked with relative paths from the README location
+- The README should be self-contained and readable without needing to open separate image files
 
 ### Automated Verification Code
 
