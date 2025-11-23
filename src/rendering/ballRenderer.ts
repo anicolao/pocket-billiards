@@ -16,6 +16,7 @@ export class BallRenderer {
   };
   private lastScale = 0;
   private readonly CANVAS_PADDING_MULTIPLIER = 2.5;
+  private canvasVisible: boolean[] = [];
 
   constructor(
     container: HTMLElement,
@@ -45,6 +46,7 @@ export class BallRenderer {
       
       this.container.appendChild(canvas);
       this.canvases.push(canvas);
+      this.canvasVisible.push(false);
 
       const ctx = canvas.getContext('2d');
       if (!ctx) {
@@ -74,8 +76,12 @@ export class BallRenderer {
 
       if (!ball.active) {
         canvas.style.display = 'none';
+        this.canvasVisible[index] = false;
         return;
       }
+
+      // Check if canvas is becoming visible
+      const wasHidden = !this.canvasVisible[index];
 
       // Convert table position to screen position using the transform
       const screenPosition = transform.tableToScreen(ball.position.x, ball.position.y);
@@ -93,9 +99,10 @@ export class BallRenderer {
       const canvasY = screenPosition.y - canvasSize / 2;
       canvas.style.transform = `translate3d(${canvasX}px, ${canvasY}px, 0)`;
       canvas.style.display = 'block';
+      this.canvasVisible[index] = true;
 
-      // Draw the ball (redraw if canvas was resized)
-      if (scaleChanged || canvas.width !== canvasSize) {
+      // Draw the ball (redraw if canvas was resized or was previously hidden)
+      if (scaleChanged || canvas.width !== canvasSize || wasHidden) {
         this.drawBall(ctx, canvasSize / 2, canvasSize / 2, screenRadius, ball.type);
       }
     });
@@ -103,6 +110,7 @@ export class BallRenderer {
     // Hide unused canvases
     for (let i = balls.length; i < this.canvases.length; i++) {
       this.canvases[i].style.display = 'none';
+      this.canvasVisible[i] = false;
     }
   }
 
