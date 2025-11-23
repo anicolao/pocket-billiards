@@ -38,6 +38,9 @@ export class TableRenderer {
         this.canvas.height,
         dimensions
       );
+    } else {
+      // Update dimensions if they've changed
+      this.transform.updateTableDimensions(dimensions);
     }
     return this.transform;
   }

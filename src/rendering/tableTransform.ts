@@ -110,6 +110,7 @@ export class TableTransform {
    * Calculate translation for centering the table
    */
   getTranslation(): { x: number; y: number } {
+    // Calculate both values if either is missing to ensure consistency
     if (this.cachedTranslationX === null || this.cachedTranslationY === null) {
       const totalTable = this.getTotalTableDimensions();
       const scale = this.getScale();
