@@ -44,9 +44,9 @@ interface Ball {
 
 ### Motion Equation
 
-Ball motion follows basic Newtonian mechanics with friction:
+Ball motion follows basic Newtonian mechanics with friction using Euler integration:
 
-**Position Update (Verlet Integration):**
+**Position Update:**
 ```
 new_position = position + velocity * dt
 ```
@@ -160,7 +160,7 @@ function updateBallPhysics(ball: Ball, dt: number): void {
     return;
   }
   
-  // Update position first (using current velocity for proper Verlet integration)
+  // Update position first (using current velocity)
   ball.position.x += ball.velocity.x * dt;
   ball.position.y += ball.velocity.y * dt;
   
@@ -402,6 +402,7 @@ if (!physicsState.isRunning) {
 - Single square root per ball per update (for velocity magnitude)
 - No trigonometry in inner loop
 - Simple arithmetic operations only
+- Direct iteration over balls array (no repeated filter allocations)
 
 **Fixed Timestep Benefits:**
 - Prevents expensive variable timestep calculations
