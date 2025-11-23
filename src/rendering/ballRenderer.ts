@@ -1,5 +1,6 @@
 import { Ball } from '../store/ballSlice';
 import { TableDimensions } from '../store/tableSlice';
+import { TableTransform } from './tableTransform';
 
 export class BallRenderer {
   private canvases: HTMLCanvasElement[] = [];
@@ -11,6 +12,7 @@ export class BallRenderer {
       y: number;
       scale: number;
     };
+    getTableTransform: (dimensions: TableDimensions) => TableTransform;
   };
   private lastScale = 0;
   private readonly CANVAS_PADDING_MULTIPLIER = 2.5;
@@ -23,6 +25,7 @@ export class BallRenderer {
         y: number;
         scale: number;
       };
+      getTableTransform: (dimensions: TableDimensions) => TableTransform;
     }
   ) {
     this.container = container;
@@ -55,8 +58,8 @@ export class BallRenderer {
    * Update ball rendering based on current state
    */
   updateBalls(balls: Ball[], tableDimensions: TableDimensions): void {
-    const { x: tableX, y: tableY, scale } = this.tableRenderer.calculateTableBounds(tableDimensions);
-    const railWidth = tableDimensions.railWidth;
+    const transform = this.tableRenderer.getTableTransform(tableDimensions);
+    const scale = transform.getScale();
 
     // Track if scale has changed
     const scaleChanged = scale !== this.lastScale;
@@ -74,14 +77,8 @@ export class BallRenderer {
         return;
       }
 
-      // Calculate screen position
-      const screenPosition = this.calculateScreenPosition(
-        ball.position,
-        tableX,
-        tableY,
-        scale,
-        railWidth
-      );
+      // Convert table position to screen position using the transform
+      const screenPosition = transform.tableToScreen(ball.position.x, ball.position.y);
       const screenRadius = ball.radius * scale;
 
       // Size canvas to fit ball with padding (only if scale changed)
@@ -107,24 +104,6 @@ export class BallRenderer {
     for (let i = balls.length; i < this.canvases.length; i++) {
       this.canvases[i].style.display = 'none';
     }
-  }
-
-  /**
-   * Calculate screen position from table coordinates
-   */
-  private calculateScreenPosition(
-    position: { x: number; y: number },
-    tableX: number,
-    tableY: number,
-    scale: number,
-    railWidth: number
-  ): { x: number; y: number } {
-    // Ball position is relative to playing surface (felt)
-    // Add rail offset to get position relative to table origin
-    return {
-      x: tableX + (railWidth + position.x) * scale,
-      y: tableY + (railWidth + position.y) * scale,
-    };
   }
 
   /**

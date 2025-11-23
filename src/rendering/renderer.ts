@@ -1,8 +1,10 @@
 import { TableDimensions } from '../store/tableSlice';
+import { TableTransform } from './tableTransform';
 
 export class TableRenderer {
   private canvas: HTMLCanvasElement;
   private ctx: CanvasRenderingContext2D;
+  private transform: TableTransform | null = null;
 
   constructor(canvas: HTMLCanvasElement) {
     this.canvas = canvas;
@@ -19,33 +21,45 @@ export class TableRenderer {
   resize(): void {
     this.canvas.width = window.innerWidth;
     this.canvas.height = window.innerHeight;
+    
+    // Invalidate transform on resize
+    if (this.transform) {
+      this.transform.updateScreenSize(this.canvas.width, this.canvas.height);
+    }
+  }
+
+  /**
+   * Get or create the table transform
+   */
+  private getTransform(dimensions: TableDimensions): TableTransform {
+    if (!this.transform) {
+      this.transform = new TableTransform(
+        this.canvas.width,
+        this.canvas.height,
+        dimensions
+      );
+    }
+    return this.transform;
   }
 
   /**
    * Calculate the table position to center it on the canvas
+   * @deprecated Use TableTransform instead
    */
   calculateTableBounds(dimensions: TableDimensions): {
     x: number;
     y: number;
     scale: number;
   } {
-    const { width, height, railWidth } = dimensions;
-    const totalWidth = width + railWidth * 2;
-    const totalHeight = height + railWidth * 2;
+    const transform = this.getTransform(dimensions);
+    const translation = transform.getTranslation();
+    const scale = transform.getScale();
 
-    // Calculate scale to fit the table in the canvas with some padding
-    const padding = 40;
-    const scaleX = (this.canvas.width - padding * 2) / totalWidth;
-    const scaleY = (this.canvas.height - padding * 2) / totalHeight;
-    const scale = Math.min(scaleX, scaleY);
-
-    // Center the table
-    const scaledWidth = totalWidth * scale;
-    const scaledHeight = totalHeight * scale;
-    const x = (this.canvas.width - scaledWidth) / 2;
-    const y = (this.canvas.height - scaledHeight) / 2;
-
-    return { x, y, scale };
+    return {
+      x: translation.x,
+      y: translation.y,
+      scale: scale,
+    };
   }
 
   /**
@@ -53,26 +67,27 @@ export class TableRenderer {
    */
   drawTable(dimensions: TableDimensions): void {
     const { width, height, pockets, railWidth } = dimensions;
-    const { x, y, scale } = this.calculateTableBounds(dimensions);
+    const transform = this.getTransform(dimensions);
 
     // Clear the canvas
     this.ctx.fillStyle = '#1a1a1a'; // Dark background
     this.ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
 
     this.ctx.save();
-    this.ctx.translate(x, y);
-    this.ctx.scale(scale, scale);
+    
+    // Apply the table transform
+    transform.applyToContext(this.ctx);
 
-    // Draw the outer rail (wood)
+    // Draw the outer rail (wood) - extends from -railWidth to +railWidth around playing surface
     this.ctx.fillStyle = '#4a3428'; // Dark wood color
-    this.ctx.fillRect(0, 0, width + railWidth * 2, height + railWidth * 2);
+    this.ctx.fillRect(-railWidth, -railWidth, width + railWidth * 2, height + railWidth * 2);
 
-    // Draw the playing surface (felt)
+    // Draw the playing surface (felt) - at origin (0, 0)
     this.ctx.fillStyle = '#0b6623'; // Green felt
-    this.ctx.fillRect(railWidth, railWidth, width, height);
+    this.ctx.fillRect(0, 0, width, height);
 
     // Draw the pockets
-    this.drawPockets(pockets, railWidth);
+    this.drawPockets(pockets);
 
     this.ctx.restore();
   }
@@ -80,19 +95,13 @@ export class TableRenderer {
   /**
    * Draw the pockets on the table
    */
-  private drawPockets(pockets: { x: number; y: number; radius: number }[], railWidth: number): void {
+  private drawPockets(pockets: { x: number; y: number; radius: number }[]): void {
     this.ctx.fillStyle = '#000000'; // Black pockets
 
     pockets.forEach((pocket) => {
       this.ctx.beginPath();
-      // Pocket positions are relative to playing surface, adjust for rail offset
-      this.ctx.arc(
-        railWidth + pocket.x,
-        railWidth + pocket.y,
-        pocket.radius,
-        0,
-        Math.PI * 2
-      );
+      // Pockets are positioned in table coordinates (relative to playing surface origin)
+      this.ctx.arc(pocket.x, pocket.y, pocket.radius, 0, Math.PI * 2);
       this.ctx.fill();
     });
   }
@@ -102,5 +111,12 @@ export class TableRenderer {
    */
   clear(): void {
     this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
+  }
+
+  /**
+   * Get the table transform for use by other renderers
+   */
+  getTableTransform(dimensions: TableDimensions): TableTransform {
+    return this.getTransform(dimensions);
   }
 }
