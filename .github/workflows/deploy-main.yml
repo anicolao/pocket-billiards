@@ -15,8 +15,162 @@ concurrency:
   cancel-in-progress: false
 
 jobs:
+  test-and-validate:
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build application
+        run: npm run build
+
+      - name: Run unit tests
+        id: unit-tests
+        run: |
+          npm test 2>&1 | tee unit-test-output.txt
+          echo "exit_code=${PIPESTATUS[0]}" >> $GITHUB_OUTPUT
+
+      - name: Run unit tests with coverage
+        id: unit-tests-coverage
+        run: |
+          npm run test:coverage 2>&1 | tee unit-test-coverage-output.txt
+          echo "exit_code=${PIPESTATUS[0]}" >> $GITHUB_OUTPUT
+
+      - name: Generate unit test summary
+        if: always()
+        run: |
+          echo "## Unit Test Results" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+
+          if [ -f unit-test-output.txt ]; then
+            echo '```' >> $GITHUB_STEP_SUMMARY
+            tail -n 20 unit-test-output.txt >> $GITHUB_STEP_SUMMARY
+            echo '```' >> $GITHUB_STEP_SUMMARY
+          else
+            echo "❌ Unit test output not found" >> $GITHUB_STEP_SUMMARY
+          fi
+
+          if [ "${{ steps.unit-tests.outputs.exit_code }}" = "0" ]; then
+            echo "" >> $GITHUB_STEP_SUMMARY
+            echo "✅ **All unit tests passed!**" >> $GITHUB_STEP_SUMMARY
+          else
+            echo "" >> $GITHUB_STEP_SUMMARY
+            echo "❌ **Unit tests failed!**" >> $GITHUB_STEP_SUMMARY
+          fi
+
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "## Code Coverage" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+
+          if [ -f unit-test-coverage-output.txt ]; then
+            echo '```' >> $GITHUB_STEP_SUMMARY
+            # Extract coverage table from vitest output
+            grep -A 20 "% Coverage report" unit-test-coverage-output.txt >> $GITHUB_STEP_SUMMARY
+            echo '```' >> $GITHUB_STEP_SUMMARY
+          else
+            echo "❌ Coverage output not found" >> $GITHUB_STEP_SUMMARY
+          fi
+
+      - name: Upload unit test results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: unit-test-output
+          path: |
+            unit-test-output.txt
+            unit-test-coverage-output.txt
+          retention-days: 90
+
+      - name: Install Playwright browsers
+        run: |
+          npx playwright install chromium --with-deps
+
+      - name: Run E2E tests
+        id: e2e-tests
+        run: |
+          npm run test:e2e 2>&1 | tee e2e-test-output.txt
+          echo "exit_code=${PIPESTATUS[0]}" >> $GITHUB_OUTPUT
+
+      - name: Generate E2E test summary
+        if: always()
+        run: |
+          echo "## E2E Test Results" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+
+          if [ -f e2e-test-output.txt ]; then
+            echo '```' >> $GITHUB_STEP_SUMMARY
+            tail -n 30 e2e-test-output.txt >> $GITHUB_STEP_SUMMARY
+            echo '```' >> $GITHUB_STEP_SUMMARY
+          else
+            echo "❌ E2E test output not found" >> $GITHUB_STEP_SUMMARY
+          fi
+
+          if [ "${{ steps.e2e-tests.outputs.exit_code }}" = "0" ]; then
+            echo "" >> $GITHUB_STEP_SUMMARY
+            echo "✅ **All E2E tests passed!**" >> $GITHUB_STEP_SUMMARY
+            echo "" >> $GITHUB_STEP_SUMMARY
+            echo "**Screenshot Status**: No regeneration needed - all screenshots match baseline" >> $GITHUB_STEP_SUMMARY
+          else
+            echo "" >> $GITHUB_STEP_SUMMARY
+            echo "❌ **E2E tests failed!**" >> $GITHUB_STEP_SUMMARY
+            echo "" >> $GITHUB_STEP_SUMMARY
+            echo "**Screenshot Status**: Check test results for screenshot differences" >> $GITHUB_STEP_SUMMARY
+          fi
+
+      - name: Upload E2E test results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: e2e-test-results
+          path: |
+            e2e-test-output.txt
+            playwright-report/
+            test-results/
+          retention-days: 90
+
+      - name: Create test status summary
+        if: always()
+        run: |
+          cat > test-status-summary.md << 'EOF'
+          # Test Status from Main Branch
+
+          ## Unit Tests
+          $(if [ "${{ steps.unit-tests.outputs.exit_code }}" = "0" ]; then echo "✅ PASSED - All unit tests passing"; else echo "❌ FAILED"; fi)
+
+          ## Code Coverage
+          $(if [ "${{ steps.unit-tests-coverage.outputs.exit_code }}" = "0" ]; then echo "✅ Coverage report generated"; else echo "❌ Coverage failed"; fi)
+
+          **Coverage Details**: See unit-test-coverage-output.txt for full coverage report
+
+          ## E2E Tests
+          $(if [ "${{ steps.e2e-tests.outputs.exit_code }}" = "0" ]; then echo "✅ PASSED - All E2E tests passing, no screenshot regeneration needed"; else echo "❌ FAILED"; fi)
+
+          ---
+
+          Generated from workflow run: ${{ github.run_id }}
+          Commit: ${{ github.sha }}
+          EOF
+
+      - name: Upload test status summary
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: test-status-summary
+          path: test-status-summary.md
+          retention-days: 90
+
   build-and-deploy:
     runs-on: ubuntu-latest
+    needs: test-and-validate
     environment:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
